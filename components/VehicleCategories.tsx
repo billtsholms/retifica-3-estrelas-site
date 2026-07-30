@@ -29,7 +29,7 @@ export function VehicleCategories() {
             equipe avaliar.
           </p>
           <a
-            className="button button--outline"
+            className="button button--primary"
             href={getWhatsAppUrl("veiculos")}
             target="_blank"
             rel="noreferrer"
