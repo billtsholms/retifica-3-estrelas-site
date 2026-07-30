@@ -30,7 +30,7 @@ test("server-renders the production landing page", async () => {
   const html = await response.text();
   assert.match(
     html,
-    /Retífica de motores com padrão premium desde 1991\./,
+    /Retífica de motores com padrão premium desde 1990\./,
   );
   assert.match(html, /Veículos atendidos/);
   assert.match(html, /Serviços especializados/);

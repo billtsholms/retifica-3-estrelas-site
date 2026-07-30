@@ -1,6 +1,6 @@
 export const siteConfig = {
   name: "Retífica Três Estrelas",
-  since: 1991,
+  since: 1990,
   whatsapp: {
     number: "5517991904957",
     display: "(17) 99190-4957",
@@ -144,7 +144,7 @@ export const gallery = [
 ] as const;
 
 export const differentials = [
-  { title: "Experiência desde 1991", icon: "award" },
+  { title: "Experiência desde 1990", icon: "award" },
   { title: "Atendimento completo", icon: "users" },
   { title: "Especialização em diesel", icon: "badge" },
   { title: "Garantia no serviço", icon: "shield" },

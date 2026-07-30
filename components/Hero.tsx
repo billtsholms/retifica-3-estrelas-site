@@ -5,12 +5,12 @@ export function Hero() {
   return (
     <section className="hero" id="inicio" aria-labelledby="hero-title">
       <h1 className="sr-only" id="hero-title">
-        Retífica de motores com padrão premium desde 1991.
+        Retífica de motores com padrão premium desde 1990.
       </h1>
       <div className="hero-banner hero-banner--desktop">
         <Image
-          src="/hero/banner-home.webp"
-          alt="Retífica de motores com padrão premium desde 1991, com atendimento em São José do Rio Preto"
+          src="/hero/banner-home-1990.png"
+          alt="Retífica de motores com padrão premium desde 1990, com atendimento em São José do Rio Preto"
           fill
           sizes="100vw"
           priority

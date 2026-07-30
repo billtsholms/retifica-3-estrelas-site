@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 const items = [
-  { label: "Desde", value: "1991", icon: CalendarDays },
+  { label: "Desde", value: "1990", icon: CalendarDays },
   { label: "Combustíveis", value: "Gasolina, flex e diesel", icon: Fuel },
   { label: "Especialização", value: "Especialistas em diesel", icon: BadgeCheck },
   { label: "Garantia", value: "90 dias ou 10.000 km", icon: ShieldCheck },
