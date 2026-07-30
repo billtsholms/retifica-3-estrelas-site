@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, MessageCircle, X } from "lucide-react";
+import { Menu, PhoneCall, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { navigation } from "@/data/site";
@@ -89,7 +89,7 @@ export function Header() {
             rel="noreferrer"
           >
             <span className="button-whatsapp__icon" aria-hidden="true">
-              <MessageCircle size={18} strokeWidth={2.2} />
+              <PhoneCall size={17} strokeWidth={2.25} />
             </span>
             <span>Falar no WhatsApp</span>
           </a>
@@ -125,10 +125,10 @@ export function Header() {
               className="button button--primary button--whatsapp"
               href={getWhatsAppUrl("cabecalho-mobile")}
               target="_blank"
-              rel="noreferrer"
-            >
-              <span className="button-whatsapp__icon" aria-hidden="true">
-                <MessageCircle size={18} strokeWidth={2.2} />
+            rel="noreferrer"
+          >
+            <span className="button-whatsapp__icon" aria-hidden="true">
+                <PhoneCall size={17} strokeWidth={2.25} />
               </span>
               <span>Falar no WhatsApp</span>
             </a>
