@@ -1,46 +1,30 @@
-import { Check, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 
 export function FinalCTA() {
   return (
     <section className="final-cta" aria-labelledby="final-cta-title">
-      <div className="container final-cta-shell">
-        <div className="final-cta-copy">
-          <span className="final-cta-eyebrow">Pronto para cuidar do seu motor?</span>
-          <h2 id="final-cta-title">Seu veículo merece uma retífica à altura.</h2>
-          <p>
-            Confiança, tecnologia e experiência para entregar o melhor resultado.
-          </p>
-          <div className="final-cta-points" aria-label="Tipos de atendimento">
-            <span>
-              <Check size={15} aria-hidden="true" /> Veículos leves
-            </span>
-            <span>
-              <Check size={15} aria-hidden="true" /> Utilitários e pesados
-            </span>
-            <span>
-              <Check size={15} aria-hidden="true" /> Especialização em diesel
-            </span>
-          </div>
+      <h2 className="sr-only" id="final-cta-title">
+        Seu veículo merece uma retífica à altura
+      </h2>
+      <div className="container">
+        <div className="final-banner">
+          <Image
+            src="/banner-final.jpg"
+            alt="Seu veículo merece uma retífica à altura. Atendimento para veículos leves, utilitários, pesados e motores diesel."
+            fill
+            sizes="(max-width: 680px) calc(100vw - 28px), 1180px"
+            unoptimized
+          />
           <a
-            className="button button--primary"
+            className="final-banner-hotspot"
             href={getWhatsAppUrl("chamada-final")}
             target="_blank"
             rel="noreferrer"
+            aria-label="Fale conosco pelo WhatsApp"
           >
-            <MessageCircle size={19} aria-hidden="true" />
-            Fale conosco
+            <span className="sr-only">Fale conosco</span>
           </a>
-        </div>
-        <div className="final-cta-image">
-          <Image
-            src="/fachada/fachada-2.webp"
-            alt="Fachada da Retífica Três Estrelas"
-            fill
-            sizes="(max-width: 680px) 100vw, 62vw"
-            unoptimized
-          />
         </div>
       </div>
     </section>
