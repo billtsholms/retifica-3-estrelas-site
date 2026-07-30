@@ -58,10 +58,10 @@ export function Header() {
       <div className="container header-inner">
         <a className="header-logo" href="#inicio" aria-label="Retífica Três Estrelas — início">
           <Image
-            src="/brand/logo.webp"
+            src="/brand/logo-v2.png"
             alt="Retífica Três Estrelas"
-            width={420}
-            height={420}
+            width={600}
+            height={600}
             priority
             unoptimized
           />

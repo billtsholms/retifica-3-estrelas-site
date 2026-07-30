@@ -56,10 +56,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
-        { url: "/brand/icon-192.png", type: "image/png", sizes: "192x192" },
+        { url: "/brand/icon-192-v2.png", type: "image/png", sizes: "192x192" },
       ],
       apple: [
-        { url: "/brand/icon-192.png", type: "image/png", sizes: "192x192" },
+        { url: "/brand/icon-192-v2.png", type: "image/png", sizes: "192x192" },
       ],
     },
     manifest: "/manifest.webmanifest",

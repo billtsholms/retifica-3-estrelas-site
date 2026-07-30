@@ -19,7 +19,7 @@ const structuredData = {
   description:
     "Retífica de motores para carros, caminhonetes, vans, utilitários, agrícolas e caminhões, com especialização técnica em motores diesel.",
   telephone: `+${siteConfig.whatsapp.number}`,
-  logo: "/brand/logo.png",
+  logo: "/brand/logo-v2.png",
   image: "/fachada/fachada-1.webp",
   address: {
     "@type": "PostalAddress",

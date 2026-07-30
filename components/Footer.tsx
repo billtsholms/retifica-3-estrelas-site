@@ -9,10 +9,10 @@ export function Footer() {
       <div className="container footer-main">
         <div className="footer-brand">
           <Image
-            src="/brand/logo.webp"
+            src="/brand/logo-v2.png"
             alt="Retífica Três Estrelas"
-            width={420}
-            height={420}
+            width={600}
+            height={600}
             unoptimized
           />
           <p>
