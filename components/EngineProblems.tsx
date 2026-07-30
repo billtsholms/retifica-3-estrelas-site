@@ -30,7 +30,7 @@ export function EngineProblems() {
         </div>
         <div className="center-action">
           <a
-            className="button button--outline"
+            className="button button--primary"
             href={getWhatsAppUrl("problemas")}
             target="_blank"
             rel="noreferrer"
