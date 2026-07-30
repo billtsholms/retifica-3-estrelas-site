@@ -1575,36 +1575,31 @@ a.footer-detail:hover {
   right: 24px;
   bottom: 24px;
   display: flex;
-  width: auto;
+  width: 56px;
   height: 56px;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 0;
   border-radius: 999px;
-  background: var(--gold);
-  box-shadow: 0 12px 30px rgba(11, 12, 13, 0.2);
+  background: #00b96b;
+  box-shadow: 0 12px 30px rgba(0, 185, 107, 0.28);
   color: white;
-  padding: 0 18px;
+  padding: 0;
   transition:
     transform 180ms ease,
     background-color 180ms ease;
 }
 
-.whatsapp-float span {
-  font-family: var(--font-manrope), Arial, sans-serif;
-  font-size: 0.75rem;
-  font-weight: 780;
-}
-
 .whatsapp-float__icon {
-  color: #25d366;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.18));
-  stroke-width: 2.4;
+  width: 28px;
+  height: 28px;
+  color: white;
 }
 
 .whatsapp-float:hover {
   transform: translateY(-3px);
-  background: var(--gold-dark);
+  background: #079a5d;
+  box-shadow: 0 15px 34px rgba(0, 153, 89, 0.35);
 }
 
 .mobile-whatsapp-bar {
