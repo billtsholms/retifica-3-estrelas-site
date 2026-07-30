@@ -10,16 +10,10 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
-  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 18);
-      const scrollable =
-        document.documentElement.scrollHeight - window.innerHeight;
-      setScrollProgress(
-        scrollable > 0 ? Math.min(100, (window.scrollY / scrollable) * 100) : 0,
-      );
     };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -135,11 +129,6 @@ export function Header() {
           </div>
         </nav>
       ) : null}
-      <span
-        className="header-progress"
-        aria-hidden="true"
-        style={{ width: `${scrollProgress}%` }}
-      />
     </header>
   );
 }
