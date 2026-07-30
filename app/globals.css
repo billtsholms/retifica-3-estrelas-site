@@ -1596,6 +1596,12 @@ a.footer-detail:hover {
   font-weight: 780;
 }
 
+.whatsapp-float__icon {
+  color: #25d366;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.18));
+  stroke-width: 2.4;
+}
+
 .whatsapp-float:hover {
   transform: translateY(-3px);
   background: var(--gold-dark);
