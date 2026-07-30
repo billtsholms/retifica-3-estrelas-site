@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { MobileWhatsAppBar } from "@/components/MobileWhatsAppBar";
+import { MotionEnhancements } from "@/components/MotionEnhancements";
 import { Services } from "@/components/Services";
 import { TrustBar } from "@/components/TrustBar";
 import { VehicleCategories } from "@/components/VehicleCategories";
@@ -38,6 +39,7 @@ const structuredData = {
 export default function Home() {
   return (
     <>
+      <MotionEnhancements />
       <Header />
       <main>
         <Hero />
