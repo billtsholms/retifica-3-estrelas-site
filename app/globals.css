@@ -377,10 +377,8 @@ h3,
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 144px 0 52px;
-  background:
-    radial-gradient(circle at 86% 14%, rgba(201, 146, 46, 0.08), transparent 28%),
-    linear-gradient(180deg, #fff 0%, #fff 72%, #fafaf8 100%);
+  padding: 92px 0 0;
+  background: #050708;
 }
 
 .hero::after {
@@ -393,6 +391,50 @@ h3,
   content: "";
   mask-image: linear-gradient(90deg, transparent 6%, black 72%, transparent);
   pointer-events: none;
+  display: none;
+}
+
+.hero-banner-desktop {
+  position: relative;
+  width: min(100%, 1983px);
+  aspect-ratio: 1983 / 793;
+  margin-inline: auto;
+  background: #050708;
+}
+
+.hero-banner-desktop img {
+  object-fit: contain;
+}
+
+.hero-banner-hotspot {
+  position: absolute;
+  z-index: 3;
+  top: 82.7%;
+  height: 8.9%;
+  border-radius: 16px;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.hero-banner-hotspot:hover,
+.hero-banner-hotspot:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 2px rgba(227, 178, 82, 0.7);
+}
+
+.hero-banner-hotspot--primary {
+  left: 4.8%;
+  width: 14.4%;
+}
+
+.hero-banner-hotspot--secondary {
+  left: 19.8%;
+  width: 14.2%;
+}
+
+.hero-grid--mobile {
+  display: none;
 }
 
 .hero-grid {
@@ -1315,7 +1357,22 @@ h3,
   }
 
   .hero {
-    padding-top: 118px;
+    padding: 118px 0 52px;
+    background:
+      radial-gradient(circle at 86% 14%, rgba(201, 146, 46, 0.08), transparent 28%),
+      linear-gradient(180deg, #fff 0%, #fff 72%, #fafaf8 100%);
+  }
+
+  .hero::after {
+    display: block;
+  }
+
+  .hero-banner-desktop {
+    display: none;
+  }
+
+  .hero-grid--mobile {
+    display: grid;
   }
 
   .hero-grid {
