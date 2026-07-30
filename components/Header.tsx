@@ -1,9 +1,16 @@
 "use client";
 
-import { Menu, PhoneCall, X } from "lucide-react";
+import {
+  Clock3,
+  MapPin,
+  Menu,
+  MessageCircle,
+  PhoneCall,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { navigation } from "@/data/site";
+import { navigation, siteConfig } from "@/data/site";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 
 export function Header() {
@@ -12,18 +19,15 @@ export function Header() {
   const [activeSection, setActiveSection] = useState("inicio");
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 18);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 18);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    const sectionIds = navigation.map((item) => item.href.slice(1));
-    const sections = sectionIds
-      .map((id) => document.getElementById(id))
+    const sections = navigation
+      .map((item) => document.getElementById(item.href.slice(1)))
       .filter((section): section is HTMLElement => section !== null);
     const observer = new IntersectionObserver(
       (entries) => {
@@ -47,46 +51,90 @@ export function Header() {
     return () => window.removeEventListener("keydown", handleEscape);
   }, []);
 
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${siteConfig.address.street}, ${siteConfig.address.city}`,
+  )}`;
+
   return (
     <header className={`site-header${scrolled ? " site-header--scrolled" : ""}`}>
-      <div className="container header-inner">
-        <a className="header-logo" href="#inicio" aria-label="Retífica Três Estrelas — início">
-          <Image
-            src="/brand/logo-v2.png"
-            alt="Retífica Três Estrelas"
-            width={600}
-            height={600}
-            priority
-            unoptimized
-          />
-        </a>
-
-        <nav className="desktop-nav" aria-label="Navegação principal">
-          {navigation.map((item) => (
+      <div className="header-top">
+        <div className="container header-top-layout">
+          <div className="header-top-spacer" aria-hidden="true" />
+          <div className="header-top-panel">
+            <ul className="header-top-list">
+              <li>
+                <a href={getWhatsAppUrl("topo-contato")} target="_blank" rel="noreferrer">
+                  <MessageCircle size={15} aria-hidden="true" />
+                  {siteConfig.whatsapp.display}
+                </a>
+              </li>
+              <li>
+                <Clock3 size={15} aria-hidden="true" />
+                Horário: confirme pelo WhatsApp
+              </li>
+              <li>
+                <a href={mapsUrl} target="_blank" rel="noreferrer">
+                  <MapPin size={15} aria-hidden="true" />
+                  {siteConfig.address.street}
+                </a>
+              </li>
+            </ul>
             <a
-              key={item.href}
-              href={item.href}
-              aria-current={
-                activeSection === item.href.slice(1) ? "location" : undefined
-              }
+              className="header-top-cta"
+              href={getWhatsAppUrl("topo")}
+              target="_blank"
+              rel="noreferrer"
             >
-              {item.label}
+              <Menu size={19} aria-hidden="true" />
+              Fale conosco
             </a>
-          ))}
-        </nav>
+          </div>
+        </div>
+      </div>
 
-        <div className="header-actions">
+      <div className="header-main">
+        <div className="container header-main-inner">
           <a
-            className="button button--primary button--whatsapp"
-            href={getWhatsAppUrl("cabecalho")}
-            target="_blank"
-            rel="noreferrer"
+            className="header-logo"
+            href="#inicio"
+            aria-label="Retífica Três Estrelas — início"
           >
-            <span className="button-whatsapp__icon" aria-hidden="true">
-              <PhoneCall size={17} strokeWidth={2.25} />
-            </span>
-            <span>Fale conosco</span>
+            <Image
+              src="/brand/logo-v2.png"
+              alt="Retífica Três Estrelas"
+              width={600}
+              height={600}
+              priority
+              unoptimized
+            />
           </a>
+
+          <a
+            className="header-call"
+            href={`tel:+${siteConfig.whatsapp.number}`}
+            aria-label={`Ligar para ${siteConfig.whatsapp.display}`}
+          >
+            <PhoneCall size={40} strokeWidth={1.8} aria-hidden="true" />
+            <span>
+              <small>Ligue agora!</small>
+              <strong>{siteConfig.whatsapp.display}</strong>
+            </span>
+          </a>
+
+          <nav className="desktop-nav" aria-label="Navegação principal">
+            {navigation.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                aria-current={
+                  activeSection === item.href.slice(1) ? "location" : undefined
+                }
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
           <button
             className="menu-button"
             type="button"
