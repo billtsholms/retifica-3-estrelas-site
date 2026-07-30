@@ -1,27 +1,27 @@
 import {
-  Cloud,
-  Cog,
+  AudioLines,
+  CircleGauge,
+  CloudFog,
   Droplets,
   Fuel,
-  Gauge,
   KeyRound,
   MessageCircle,
+  Settings,
   ThermometerSun,
-  Volume2,
 } from "lucide-react";
 import { problems } from "@/data/site";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { SectionHeading } from "./SectionHeading";
 
 const iconMap = {
-  cloud: Cloud,
-  gauge: Gauge,
+  cloud: CloudFog,
+  gauge: CircleGauge,
   oil: Fuel,
   temperature: ThermometerSun,
-  sound: Volume2,
+  sound: AudioLines,
   key: KeyRound,
   droplets: Droplets,
-  cog: Cog,
+  cog: Settings,
 };
 
 export function EngineProblems() {
@@ -47,7 +47,7 @@ export function EngineProblems() {
                 aria-label={`${problem.title}: falar com a Retífica Três Estrelas`}
               >
                 <span className="problem-icon-wrap" aria-hidden="true">
-                  <Icon size={36} strokeWidth={1.45} />
+                  <Icon size={32} strokeWidth={1.8} />
                 </span>
                 <strong>{problem.title}</strong>
               </a>
