@@ -40,27 +40,27 @@ export const vehicles = [
     title: "Camionetes e utilitários diesel",
     description:
       "Amarok, Ranger, Toro, Hilux, S10, Frontier e outros modelos.",
-    image: "/fachada/fachada-1.webp",
-    alt: "Camionetes e utilitários em frente à Retífica Três Estrelas",
+    image: "/veiculos/caminhonetes-utilitarios.jpg",
+    alt: "Caminhonete diesel e veículo utilitário em ambiente de oficina",
   },
   {
     title: "Vans",
     description: "Master, Ducato, Sprinter e outros modelos.",
-    image: "/estrutura/interna-1.webp",
-    alt: "Vans e veículos no interior da oficina",
+    image: "/veiculos/vans.jpg",
+    alt: "Duas vans comerciais em ambiente de oficina",
   },
   {
     title: "Carros",
     description:
       "Motores flex, gasolina, três cilindros, turbo e outros motores leves.",
-    image: "/estrutura/interna-2.webp",
-    alt: "Carros e veículos leves atendidos na oficina",
+    image: "/veiculos/carros.jpg",
+    alt: "Carro sedã e hatch em ambiente de oficina",
   },
   {
     title: "Agrícolas e caminhões",
     description: "Motores agrícolas e caminhões de diversas marcas.",
-    image: "/servicos/servico-6.webp",
-    alt: "Máquina agrícola em atendimento dentro da oficina",
+    image: "/veiculos/agricolas-caminhoes.jpg",
+    alt: "Trator agrícola e caminhão em ambiente de manutenção",
   },
 ] as const;
 
