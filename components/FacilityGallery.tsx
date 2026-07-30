@@ -23,6 +23,7 @@ export function FacilityGallery() {
         <SectionHeading
           eyebrow="Estrutura completa para entregar o melhor"
           title="Estrutura e equipamentos"
+          index="04"
         />
         <div className="gallery-grid">
           {gallery.map((item, index) => (
@@ -32,7 +33,7 @@ export function FacilityGallery() {
               key={item.image}
               onClick={() => setSelected(index)}
               aria-label={`Ampliar imagem: ${item.alt}`}
-            >
+              >
               <Image
                 src={item.image}
                 alt={item.alt}
@@ -40,6 +41,9 @@ export function FacilityGallery() {
                 sizes="(max-width: 680px) 50vw, (max-width: 900px) 33vw, 20vw"
                 unoptimized
               />
+              <span className="gallery-label">
+                {String(index + 1).padStart(2, "0")} — {item.title}
+              </span>
             </button>
           ))}
         </div>

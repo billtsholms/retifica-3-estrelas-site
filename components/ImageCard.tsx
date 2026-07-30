@@ -7,6 +7,7 @@ type ImageCardProps = {
   image: string;
   alt: string;
   icon?: LucideIcon;
+  badge?: string;
 };
 
 export function ImageCard({
@@ -15,6 +16,7 @@ export function ImageCard({
   image,
   alt,
   icon: Icon,
+  badge,
 }: ImageCardProps) {
   return (
     <article className="image-card">
@@ -26,6 +28,7 @@ export function ImageCard({
           sizes="(max-width: 680px) 100vw, (max-width: 900px) 50vw, 33vw"
           unoptimized
         />
+        {badge ? <span className="image-card-badge">{badge}</span> : null}
       </div>
       <div className="image-card-body">
         <div className="image-card-title-row">

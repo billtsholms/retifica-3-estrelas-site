@@ -9,12 +9,40 @@ import { getWhatsAppUrl } from "@/lib/whatsapp";
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("inicio");
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 18);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 18);
+      const scrollable =
+        document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(
+        scrollable > 0 ? Math.min(100, (window.scrollY / scrollable) * 100) : 0,
+      );
+    };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const sectionIds = navigation.map((item) => item.href.slice(1));
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((section): section is HTMLElement => section !== null);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActiveSection(visible.target.id);
+      },
+      { rootMargin: "-28% 0px -58% 0px", threshold: [0, 0.25, 0.6] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -41,7 +69,13 @@ export function Header() {
 
         <nav className="desktop-nav" aria-label="Navegação principal">
           {navigation.map((item) => (
-            <a key={item.href} href={item.href}>
+            <a
+              key={item.href}
+              href={item.href}
+              aria-current={
+                activeSection === item.href.slice(1) ? "location" : undefined
+              }
+            >
               {item.label}
             </a>
           ))}
@@ -74,7 +108,14 @@ export function Header() {
         <nav className="mobile-menu" id="menu-mobile" aria-label="Navegação mobile">
           <div className="container mobile-menu-inner">
             {navigation.map((item) => (
-              <a key={item.href} href={item.href} onClick={() => setOpen(false)}>
+              <a
+                key={item.href}
+                href={item.href}
+                aria-current={
+                  activeSection === item.href.slice(1) ? "location" : undefined
+                }
+                onClick={() => setOpen(false)}
+              >
                 {item.label}
               </a>
             ))}
@@ -90,6 +131,11 @@ export function Header() {
           </div>
         </nav>
       ) : null}
+      <span
+        className="header-progress"
+        aria-hidden="true"
+        style={{ width: `${scrollProgress}%` }}
+      />
     </header>
   );
 }

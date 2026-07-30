@@ -11,6 +11,7 @@ export function WhatsAppButton() {
       aria-label="Falar com a Retífica Três Estrelas pelo WhatsApp"
     >
       <MessageCircle size={27} aria-hidden="true" />
+      <span>Avaliação rápida</span>
     </a>
   );
 }

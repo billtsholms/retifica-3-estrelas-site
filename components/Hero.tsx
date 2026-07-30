@@ -1,4 +1,10 @@
-import { ArrowRight, MessageCircle } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Fuel,
+  MapPin,
+  MessageCircle,
+} from "lucide-react";
 import Image from "next/image";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 
@@ -14,6 +20,16 @@ export function Hero() {
             caminhões, com experiência em diferentes tipos de motores e
             especialização em motores diesel.
           </p>
+          <div className="hero-proof" aria-label="Informações principais">
+            <span>
+              <MapPin size={16} aria-hidden="true" />
+              São José do Rio Preto — SP
+            </span>
+            <span>
+              <Fuel size={16} aria-hidden="true" />
+              Gasolina, flex e diesel
+            </span>
+          </div>
           <div className="hero-actions">
             <a
               className="button button--primary"
@@ -28,6 +44,13 @@ export function Hero() {
               Conhecer serviços
               <ArrowRight size={18} aria-hidden="true" />
             </a>
+          </div>
+          <div className="hero-assurance">
+            <BadgeCheck size={18} aria-hidden="true" />
+            <span>
+              Avaliação técnica responsável para indicar o serviço adequado ao
+              seu motor.
+            </span>
           </div>
         </div>
 
@@ -52,6 +75,15 @@ export function Hero() {
             />
           </div>
           <span className="hero-gold-line" aria-hidden="true" />
+          <div className="hero-since-badge" aria-label="Experiência desde 1991">
+            <span>Desde</span>
+            <strong>1991</strong>
+            <small>experiência técnica</small>
+          </div>
+          <div className="hero-specialty">
+            <BadgeCheck size={17} aria-hidden="true" />
+            Especialização em diesel
+          </div>
         </div>
       </div>
     </section>

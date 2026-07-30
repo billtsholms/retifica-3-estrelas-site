@@ -12,10 +12,15 @@ export function VehicleCategories() {
           eyebrow="Atendemos diversos segmentos"
           title="Veículos atendidos"
           description="Experiência em motores de veículos leves, utilitários, linha diesel, agrícolas e caminhões."
+          index="02"
         />
         <div className="vehicle-grid">
-          {vehicles.map((vehicle) => (
-            <ImageCard key={vehicle.title} {...vehicle} />
+          {vehicles.map((vehicle, index) => (
+            <ImageCard
+              key={vehicle.title}
+              {...vehicle}
+              badge={`Segmento ${String(index + 1).padStart(2, "0")}`}
+            />
           ))}
         </div>
         <div className="section-footer-action">

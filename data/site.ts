@@ -119,22 +119,27 @@ export const gallery = [
   {
     image: "/estrutura/interna-1.webp",
     alt: "Vista ampla do interior da oficina com vans e veículos",
+    title: "Oficina",
   },
   {
     image: "/maquinas/maquina-2.webp",
     alt: "Máquina vermelha de precisão com cabeçote em processo",
+    title: "Precisão",
   },
   {
     image: "/maquinas/maquina-3.webp",
     alt: "Equipamento vertical vermelho para serviços de retífica",
+    title: "Equipamentos",
   },
   {
     image: "/servicos/servico-1.webp",
     alt: "Bloco de motor sendo recuperado na bancada",
+    title: "Processo técnico",
   },
   {
     image: "/servicos/servico-6.webp",
     alt: "Máquina agrícola presente na área interna da oficina",
+    title: "Linha pesada",
   },
 ] as const;
 

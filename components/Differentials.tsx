@@ -25,6 +25,7 @@ export function Differentials() {
         <SectionHeading
           eyebrow="Por que escolher a Três Estrelas?"
           title="Diferenciais que fazem a diferença"
+          index="05"
         />
         <div className="differentials-grid">
           {differentials.map((item) => {

@@ -32,6 +32,7 @@ export function EngineProblems() {
           eyebrow="Atenção aos sinais"
           title="Seu motor apresenta algum destes problemas?"
           centered
+          index="01"
         />
         <div className="problem-grid">
           {problems.map((problem) => {
