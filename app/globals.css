@@ -1838,6 +1838,15 @@ h3,
   transform: translate3d(0, 0, 0) scale(1);
 }
 
+/* Gallery imagery must remain available even if a restored page still carries
+   motion classes from an earlier render. */
+.motion-enhanced .gallery-button {
+  opacity: 1;
+  clip-path: none;
+  filter: none;
+  transform: none;
+}
+
 .motion-enhanced .section-heading .eyebrow::before {
   transform: scaleX(0);
   transform-origin: left center;

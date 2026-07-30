@@ -50,11 +50,6 @@ export function MotionEnhancements() {
       70,
     );
     addMotionClass(
-      document.querySelectorAll(".gallery-grid .gallery-button"),
-      ["motion-reveal", "motion-reveal--wipe"],
-      75,
-    );
-    addMotionClass(
       document.querySelectorAll(".differentials-grid .differential-item"),
       ["motion-reveal", "motion-reveal--soft"],
       60,
@@ -69,6 +64,17 @@ export function MotionEnhancements() {
     );
 
     const revealElements = document.querySelectorAll(".motion-reveal");
+    const revealAll = () => {
+      revealElements.forEach((element) => element.classList.add("is-visible"));
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      revealAll();
+      return () => {
+        document.documentElement.classList.remove("motion-enhanced");
+      };
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -81,6 +87,11 @@ export function MotionEnhancements() {
     );
 
     revealElements.forEach((element) => observer.observe(element));
+    window.addEventListener("pageshow", revealAll, { once: true });
+
+    // Motion is progressive enhancement: never leave content hidden if a
+    // browser delays or suppresses an IntersectionObserver callback.
+    const revealFallback = window.setTimeout(revealAll, 2400);
 
     const heroBanners = document.querySelectorAll(".hero-banner");
     heroBanners.forEach((element) => element.classList.add("motion-hero"));
@@ -92,6 +103,8 @@ export function MotionEnhancements() {
 
     return () => {
       observer.disconnect();
+      window.clearTimeout(revealFallback);
+      window.removeEventListener("pageshow", revealAll);
       window.cancelAnimationFrame(heroFrame);
       document.documentElement.classList.remove("motion-enhanced");
     };
