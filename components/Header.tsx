@@ -83,13 +83,15 @@ export function Header() {
 
         <div className="header-actions">
           <a
-            className="button button--primary"
+            className="button button--primary button--whatsapp"
             href={getWhatsAppUrl("cabecalho")}
             target="_blank"
             rel="noreferrer"
           >
-            <MessageCircle size={18} aria-hidden="true" />
-            Falar no WhatsApp
+            <span className="button-whatsapp__icon" aria-hidden="true">
+              <MessageCircle size={18} strokeWidth={2.2} />
+            </span>
+            <span>Falar no WhatsApp</span>
           </a>
           <button
             className="menu-button"
@@ -120,13 +122,15 @@ export function Header() {
               </a>
             ))}
             <a
-              className="button button--primary"
+              className="button button--primary button--whatsapp"
               href={getWhatsAppUrl("cabecalho-mobile")}
               target="_blank"
               rel="noreferrer"
             >
-              <MessageCircle size={18} aria-hidden="true" />
-              Falar no WhatsApp
+              <span className="button-whatsapp__icon" aria-hidden="true">
+                <MessageCircle size={18} strokeWidth={2.2} />
+              </span>
+              <span>Falar no WhatsApp</span>
             </a>
           </div>
         </nav>
