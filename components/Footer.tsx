@@ -37,7 +37,7 @@ export function Footer() {
                 rel="noreferrer"
               >
                 <MessageCircle size={16} aria-hidden="true" />
-                Falar pelo WhatsApp
+                Fale conosco
               </a>
             </li>
           </ul>

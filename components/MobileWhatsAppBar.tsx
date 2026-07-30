@@ -11,7 +11,7 @@ export function MobileWhatsAppBar() {
         rel="noreferrer"
       >
         <MessageCircle size={19} aria-hidden="true" />
-        Solicitar avaliação no WhatsApp
+        Fale conosco
       </a>
     </div>
   );

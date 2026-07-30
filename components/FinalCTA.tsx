@@ -30,7 +30,7 @@ export function FinalCTA() {
             rel="noreferrer"
           >
             <MessageCircle size={19} aria-hidden="true" />
-            Chamar a Retífica Três Estrelas
+            Fale conosco
           </a>
         </div>
         <div className="final-cta-image">

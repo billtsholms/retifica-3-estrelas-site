@@ -21,9 +21,9 @@ export function Hero() {
           href={getWhatsAppUrl("hero-banner")}
           target="_blank"
           rel="noreferrer"
-          aria-label="Solicitar avaliação pelo WhatsApp"
+          aria-label="Fale conosco pelo WhatsApp"
         >
-          <span className="sr-only">Solicitar avaliação</span>
+          <span className="sr-only">Fale conosco</span>
         </a>
         <a
           className="hero-banner-hotspot hero-banner-hotspot--secondary"
@@ -47,9 +47,9 @@ export function Hero() {
           href={getWhatsAppUrl("hero-banner-mobile")}
           target="_blank"
           rel="noreferrer"
-          aria-label="Solicitar avaliação pelo WhatsApp"
+          aria-label="Fale conosco pelo WhatsApp"
         >
-          <span className="sr-only">Solicitar avaliação</span>
+          <span className="sr-only">Fale conosco</span>
         </a>
         <a
           className="hero-banner-hotspot hero-banner-hotspot--secondary"

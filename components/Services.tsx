@@ -49,7 +49,7 @@ export function Services() {
             rel="noreferrer"
           >
             <MessageCircle size={18} aria-hidden="true" />
-            Solicitar avaliação do serviço
+            Fale conosco
           </a>
         </div>
       </div>

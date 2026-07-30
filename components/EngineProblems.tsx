@@ -62,7 +62,7 @@ export function EngineProblems() {
             rel="noreferrer"
           >
             <MessageCircle size={18} aria-hidden="true" />
-            Quero resolver meu problema
+            Fale conosco
           </a>
         </div>
       </div>

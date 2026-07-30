@@ -91,7 +91,7 @@ export function Header() {
             <span className="button-whatsapp__icon" aria-hidden="true">
               <PhoneCall size={17} strokeWidth={2.25} />
             </span>
-            <span>Falar no WhatsApp</span>
+            <span>Fale conosco</span>
           </a>
           <button
             className="menu-button"
@@ -125,12 +125,12 @@ export function Header() {
               className="button button--primary button--whatsapp"
               href={getWhatsAppUrl("cabecalho-mobile")}
               target="_blank"
-            rel="noreferrer"
-          >
-            <span className="button-whatsapp__icon" aria-hidden="true">
+              rel="noreferrer"
+            >
+              <span className="button-whatsapp__icon" aria-hidden="true">
                 <PhoneCall size={17} strokeWidth={2.25} />
               </span>
-              <span>Falar no WhatsApp</span>
+              <span>Fale conosco</span>
             </a>
           </div>
         </nav>

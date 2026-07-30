@@ -35,7 +35,7 @@ export function VehicleCategories() {
             rel="noreferrer"
           >
             <MessageCircle size={18} aria-hidden="true" />
-            Consultar meu veículo
+            Fale conosco
           </a>
         </div>
       </div>
