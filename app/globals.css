@@ -402,6 +402,12 @@ h3,
   background: #050708;
 }
 
+.hero-banner--mobile {
+  display: none;
+  width: min(100%, 941px);
+  aspect-ratio: 941 / 1672;
+}
+
 .hero-banner img {
   object-fit: contain;
 }
@@ -431,6 +437,20 @@ h3,
 .hero-banner-hotspot--secondary {
   left: 19.8%;
   width: 14.2%;
+}
+
+.hero-banner--mobile .hero-banner-hotspot--primary {
+  top: 79.1%;
+  left: 6.8%;
+  width: 86.1%;
+  height: 4.7%;
+}
+
+.hero-banner--mobile .hero-banner-hotspot--secondary {
+  top: 84.55%;
+  left: 6.8%;
+  width: 86.1%;
+  height: 4.7%;
 }
 
 .hero-grid {
@@ -1359,6 +1379,14 @@ h3,
 
   .hero::after {
     display: none;
+  }
+
+  .hero-banner--desktop {
+    display: none;
+  }
+
+  .hero-banner--mobile {
+    display: block;
   }
 
   .hero-grid {
