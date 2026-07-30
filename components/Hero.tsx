@@ -36,7 +36,7 @@ export function Hero() {
       <div className="hero-banner hero-banner--mobile">
         <Image
           src="/hero/banner-mobile.png"
-          alt="Retífica de motores com padrão premium desde 1991, especializada em motores diesel em São José do Rio Preto"
+          alt="Retífica de motores com padrão premium desde 1990, especializada em motores diesel em São José do Rio Preto"
           fill
           sizes="(max-width: 900px) 100vw, 0px"
           priority
