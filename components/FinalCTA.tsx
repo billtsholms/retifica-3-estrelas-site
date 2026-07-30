@@ -10,7 +10,7 @@ export function FinalCTA() {
       <div className="container">
         <div className="final-banner">
           <Image
-            src="/banner-final.jpg"
+            src="/banner-final-2026.jpg"
             alt="Seu veículo merece uma retífica à altura. Atendimento para veículos leves, utilitários, pesados e motores diesel."
             fill
             sizes="(max-width: 680px) calc(100vw - 28px), 1180px"
