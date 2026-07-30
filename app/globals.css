@@ -433,7 +433,7 @@ h3,
   width: 14.2%;
 }
 
-.hero-grid--mobile {
+.hero-grid.hero-grid--mobile {
   display: none;
 }
 
@@ -1371,7 +1371,7 @@ h3,
     display: none;
   }
 
-  .hero-grid--mobile {
+  .hero-grid.hero-grid--mobile {
     display: grid;
   }
 
