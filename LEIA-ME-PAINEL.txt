@@ -1,0 +1,17 @@
+PAINEL DE ANÚNCIOS — RETÍFICA TRÊS ESTRELAS
+
+1. Envie todo o conteúdo deste pacote para public_html.
+2. Acesse https://retificatresestrelas.com.br/admin/
+3. No primeiro acesso, crie uma senha com pelo menos 12 caracteres.
+4. Escolha uma das formas de instalação:
+   - Tags diretas: informe Meta Pixel, GA4 e/ou Google Ads.
+   - Google Tag Manager: informe o ID GTM e gerencie as tags no próprio GTM.
+5. Clique em "Salvar configurações".
+
+O site só carrega as tags de medição depois que o visitante aceita a medição.
+Os cliques no WhatsApp geram o evento "whatsapp_click".
+
+IMPORTANTE PARA FUTURAS ATUALIZAÇÕES
+Não apague a pasta oculta public_html/.tracking-admin.
+Ela guarda a senha e os IDs configurados. Faça backup dessa pasta antes de
+substituir todo o conteúdo de public_html.
