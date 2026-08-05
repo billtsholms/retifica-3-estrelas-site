@@ -45,6 +45,7 @@ export function Services() {
           <a
             className="button button--primary"
             href={getWhatsAppUrl("servicos")}
+            data-whatsapp-source="servicos-cta"
             target="_blank"
             rel="noreferrer"
           >

@@ -1,14 +1,12 @@
 import type { MetadataRoute } from "next";
-import { headers } from "next/headers";
+import { siteConfig } from "@/data/site";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const headerList = await headers();
-  const host = headerList.get("host") ?? "localhost:3000";
-  const protocol = host.includes("localhost") ? "http" : "https";
+export const dynamic = "force-static";
 
+export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: `${protocol}://${host}`,
+      url: siteConfig.url,
       changeFrequency: "monthly",
       priority: 1,
     },

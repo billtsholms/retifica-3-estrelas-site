@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
 import { Inter, Manrope } from "next/font/google";
+import { siteConfig } from "@/data/site";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -19,52 +19,45 @@ const title = "Retífica de Motores em São José do Rio Preto | Três Estrelas"
 const description =
   "Retífica de motores para carros, caminhonetes, vans, utilitários, agrícolas e caminhões em São José do Rio Preto. Especialização em motores diesel.";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const headerList = await headers();
-  const host = headerList.get("host") ?? "localhost:3000";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const metadataBase = new URL(`${protocol}://${host}`);
-
-  return {
-    metadataBase,
+export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
+  title,
+  description,
+  alternates: { canonical: siteConfig.url },
+  applicationName: "Retífica Três Estrelas",
+  category: "automotive",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: siteConfig.url,
+    siteName: "Retífica Três Estrelas",
     title,
     description,
-    alternates: { canonical: "/" },
-    applicationName: "Retífica Três Estrelas",
-    category: "automotive",
-    openGraph: {
-      type: "website",
-      locale: "pt_BR",
-      url: "/",
-      siteName: "Retífica Três Estrelas",
-      title,
-      description,
-      images: [
-        {
-          url: "/brand/og.webp",
-          width: 1200,
-          height: 630,
-          alt: "Fachada da Retífica Três Estrelas em São José do Rio Preto",
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: ["/brand/og.webp"],
-    },
-    icons: {
-      icon: [
-        { url: "/brand/icon-192-v2.png", type: "image/png", sizes: "192x192" },
-      ],
-      apple: [
-        { url: "/brand/icon-192-v2.png", type: "image/png", sizes: "192x192" },
-      ],
-    },
-    manifest: "/manifest.webmanifest",
-  };
-}
+    images: [
+      {
+        url: "/brand/og.webp",
+        width: 1200,
+        height: 630,
+        alt: "Fachada da Retífica Três Estrelas em São José do Rio Preto",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: ["/brand/og.webp"],
+  },
+  icons: {
+    icon: [
+      { url: "/brand/icon-192-v2.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [
+      { url: "/brand/icon-192-v2.png", type: "image/png", sizes: "192x192" },
+    ],
+  },
+  manifest: "/manifest.webmanifest",
+};
 
 export const viewport: Viewport = {
   width: "device-width",

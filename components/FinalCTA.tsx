@@ -19,6 +19,7 @@ export function FinalCTA() {
           <a
             className="final-banner-hotspot"
             href={getWhatsAppUrl("chamada-final")}
+            data-whatsapp-source="chamada-final"
             target="_blank"
             rel="noreferrer"
             aria-label="Fale conosco pelo WhatsApp"

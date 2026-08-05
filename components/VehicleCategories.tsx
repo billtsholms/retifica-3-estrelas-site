@@ -31,6 +31,7 @@ export function VehicleCategories() {
           <a
             className="button button--primary"
             href={getWhatsAppUrl("veiculos")}
+            data-whatsapp-source="veiculos-cta"
             target="_blank"
             rel="noreferrer"
           >

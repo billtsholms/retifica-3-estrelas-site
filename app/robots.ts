@@ -1,17 +1,15 @@
 import type { MetadataRoute } from "next";
-import { headers } from "next/headers";
+import { siteConfig } from "@/data/site";
 
-export default async function robots(): Promise<MetadataRoute.Robots> {
-  const headerList = await headers();
-  const host = headerList.get("host") ?? "localhost:3000";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const origin = `${protocol}://${host}`;
+export const dynamic = "force-static";
 
+export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: `${origin}/sitemap.xml`,
+    sitemap: `${siteConfig.url}/sitemap.xml`,
+    host: siteConfig.url,
   };
 }

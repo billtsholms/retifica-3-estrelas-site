@@ -208,6 +208,17 @@ h3,
   transform: translateY(-2px);
 }
 
+.button--ghost {
+  border-color: rgba(11, 12, 13, 0.18);
+  background: transparent;
+  color: var(--ink);
+}
+
+.button--ghost:hover {
+  border-color: var(--gold);
+  background: rgba(201, 146, 46, 0.08);
+}
+
 .button--primary {
   position: relative;
   overflow: hidden;
@@ -507,8 +518,8 @@ h3,
 
 .hero-banner {
   position: relative;
-  width: min(100%, 1983px);
-  aspect-ratio: 1983 / 793;
+  width: min(100%, 1672px);
+  aspect-ratio: 1672 / 941;
   margin-inline: auto;
   background: #050708;
 }
@@ -526,8 +537,8 @@ h3,
 .hero-banner-hotspot {
   position: absolute;
   z-index: 3;
-  top: 82.7%;
-  height: 8.9%;
+  top: 72.25%;
+  height: 8.45%;
   border-radius: 16px;
   transition:
     background-color 180ms ease,
@@ -541,27 +552,15 @@ h3,
 }
 
 .hero-banner-hotspot--primary {
-  left: 4.8%;
-  width: 14.4%;
-}
-
-.hero-banner-hotspot--secondary {
-  left: 19.8%;
-  width: 14.2%;
+  left: 3.8%;
+  width: 22.1%;
 }
 
 .hero-banner--mobile .hero-banner-hotspot--primary {
-  top: 79.1%;
-  left: 6.8%;
-  width: 86.1%;
-  height: 4.7%;
-}
-
-.hero-banner--mobile .hero-banner-hotspot--secondary {
-  top: 84.55%;
-  left: 6.8%;
-  width: 86.1%;
-  height: 4.7%;
+  top: 67.2%;
+  left: 6.9%;
+  width: 42.1%;
+  height: 5.15%;
 }
 
 .hero-grid {
@@ -888,7 +887,7 @@ h3,
   overflow: hidden;
   background-image:
     linear-gradient(180deg, transparent 62%, rgba(7, 8, 9, 0.42)),
-    url("/problemas/problemas-sprite.png");
+    url("/problemas/problemas-sprite.webp");
   background-position: 0 12.5%;
   background-repeat: no-repeat;
   background-size:
@@ -1268,6 +1267,175 @@ h3,
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.72);
 }
 
+/* FAQ */
+.faq-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.36fr) minmax(0, 1fr);
+  gap: clamp(26px, 5vw, 72px);
+  align-items: start;
+}
+
+.faq-intro {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(201, 146, 46, 0.3);
+  border-radius: 18px;
+  background: #111315;
+  color: white;
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+
+.faq-intro svg {
+  color: var(--gold);
+}
+
+.faq-intro strong {
+  font-family: var(--font-manrope), Arial, sans-serif;
+  font-size: 1.22rem;
+  line-height: 1.2;
+}
+
+.faq-intro span {
+  color: #b6b8bb;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.faq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.faq-item {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.faq-item[open] {
+  border-color: rgba(201, 146, 46, 0.55);
+  box-shadow: 0 14px 34px rgba(11, 12, 13, 0.06);
+}
+
+.faq-item summary {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  cursor: pointer;
+  padding: 17px 20px;
+  font-family: var(--font-manrope), Arial, sans-serif;
+  font-size: 0.96rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary svg {
+  flex: 0 0 auto;
+  color: var(--gold-dark);
+  transition: transform 180ms ease;
+}
+
+.faq-item[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.faq-item p {
+  margin: 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  padding: 17px 20px 20px;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+/* Consentimento de medição */
+.cookie-consent {
+  position: fixed;
+  z-index: 110;
+  right: 22px;
+  bottom: 22px;
+  left: 22px;
+  display: grid;
+  max-width: 1040px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-inline: auto;
+  border: 1px solid rgba(201, 146, 46, 0.45);
+  border-radius: 18px;
+  background: rgba(9, 10, 11, 0.97);
+  color: white;
+  padding: 18px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(16px);
+}
+
+.cookie-consent__icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(201, 146, 46, 0.5);
+  border-radius: 14px;
+  background: rgba(201, 146, 46, 0.12);
+  color: var(--gold);
+}
+
+.cookie-consent__copy strong {
+  display: block;
+  margin-bottom: 3px;
+  font-family: var(--font-manrope), Arial, sans-serif;
+  font-size: 0.94rem;
+}
+
+.cookie-consent__copy p {
+  margin: 0;
+  color: #b7b9bc;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.cookie-consent__copy a {
+  display: inline-block;
+  margin-top: 4px;
+  color: #e4b658;
+  font-size: 0.73rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cookie-consent__actions {
+  display: flex;
+  gap: 9px;
+}
+
+.cookie-consent__actions .button {
+  min-height: 44px;
+  white-space: nowrap;
+  padding: 10px 15px;
+  font-size: 0.76rem;
+}
+
+.cookie-consent__reject {
+  border-color: #3a3c3f;
+  color: white;
+}
+
+.cookie-consent__reject:hover {
+  background: #1b1d20;
+}
+
 /* Footer */
 .site-footer {
   position: relative;
@@ -1568,6 +1736,19 @@ a.footer-detail:hover {
   line-height: 1.55;
 }
 
+.privacy-details button {
+  margin-top: 9px;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* Fixed WhatsApp actions */
 .whatsapp-float {
   position: fixed;
@@ -1762,7 +1943,7 @@ a.footer-detail:hover {
 
 @media (max-width: 680px) {
   body {
-    padding-bottom: 72px;
+    padding-bottom: 24px;
   }
 
   .container {
@@ -1770,11 +1951,22 @@ a.footer-detail:hover {
   }
 
   .section {
-    padding: 56px 0;
+    padding: 48px 0;
   }
 
   .section-heading {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: clamp(1.72rem, 8.4vw, 2.15rem);
+    line-height: 1.08;
+  }
+
+  .section-description {
+    margin-top: 10px;
+    font-size: 0.94rem;
+    line-height: 1.55;
   }
 
   .hero {
@@ -1915,6 +2107,36 @@ a.footer-detail:hover {
   .section-footer-action {
     align-items: stretch;
     flex-direction: column;
+    margin-top: 20px;
+  }
+
+  .faq-layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .faq-intro {
+    padding: 22px;
+  }
+
+  .faq-item summary {
+    min-height: 62px;
+    padding: 15px 16px;
+    font-size: 0.88rem;
+  }
+
+  .faq-item p {
+    padding: 15px 16px 18px;
+    font-size: 0.86rem;
+  }
+
+  .center-action {
+    margin-top: 20px;
+  }
+
+  .center-action .button,
+  .section-footer-action .button {
+    width: 100%;
   }
 
   .gallery-grid {
@@ -1970,6 +2192,7 @@ a.footer-detail:hover {
   .footer-main {
     grid-template-columns: 1fr;
     gap: 26px;
+    padding: 52px 0 42px;
   }
 
   .footer-bottom {
@@ -1987,26 +2210,79 @@ a.footer-detail:hover {
   .mobile-whatsapp-bar {
     position: fixed;
     z-index: 90;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
     display: flex;
-    min-height: 64px;
+    width: 58px;
+    height: 58px;
     align-items: center;
     justify-content: center;
-    border-top: 1px solid rgba(158, 109, 25, 0.3);
-    background: rgba(255, 255, 255, 0.96);
-    padding: 8px 14px;
-    backdrop-filter: blur(12px);
   }
 
-  .mobile-whatsapp-bar .button {
+  .cookie-consent {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .cookie-consent__icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .cookie-consent__actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cookie-consent__actions .button {
     width: 100%;
-    min-height: 48px;
+    min-height: 46px;
+    white-space: normal;
+  }
+
+  .mobile-whatsapp-button {
+    display: grid;
+    width: 58px;
+    height: 58px;
+    place-items: center;
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    border-radius: 50%;
+    background: #00b96b;
+    box-shadow:
+      0 12px 30px rgba(0, 143, 83, 0.34),
+      0 3px 9px rgba(11, 12, 13, 0.2);
+    color: #fff;
+    transition:
+      background-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .mobile-whatsapp-button:active {
+    background: #079a5d;
+    transform: scale(0.96);
+  }
+
+  .mobile-whatsapp-button__icon {
+    width: 27px;
+    height: 27px;
   }
 }
 
 @media (max-width: 390px) {
+  .container {
+    width: min(100% - 22px, 1180px);
+  }
+
+  .section {
+    padding: 44px 0;
+  }
+
   .hero h1 {
     font-size: 2.35rem;
   }
@@ -2021,6 +2297,12 @@ a.footer-detail:hover {
 
   .differential-item strong {
     font-size: 0.72rem;
+  }
+
+  .mobile-whatsapp-bar,
+  .mobile-whatsapp-button {
+    width: 54px;
+    height: 54px;
   }
 }
 

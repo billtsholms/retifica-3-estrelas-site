@@ -55,6 +55,11 @@ export function MotionEnhancements() {
       60,
     );
     addMotionClass(
+      document.querySelectorAll(".faq-list .faq-item"),
+      ["motion-reveal", "motion-reveal--soft"],
+      55,
+    );
+    addMotionClass(
       document.querySelectorAll(".section-footer-action"),
       ["motion-reveal", "motion-reveal--soft"],
     );

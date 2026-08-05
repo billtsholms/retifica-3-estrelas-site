@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { writeFile, cp, mkdir, rm } from "node:fs/promises";
+import { resolve } from "node:path";
 
 async function render(path = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -37,6 +39,21 @@ test("server-renders the production landing page", async () => {
   assert.match(html, /application\/ld\+json/);
   assert.match(html, /5517991904957/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/);
+
+  // Write static index.html into dist/client and RETIFICA-HOSTINGER-PRONTO
+  const projectRoot = process.cwd();
+  const distClient = resolve(projectRoot, "dist", "client");
+  const hostingerExportDir = resolve(projectRoot, "RETIFICA-HOSTINGER-PRONTO");
+
+  console.log("Saving index.html to:", hostingerExportDir);
+  await rm(hostingerExportDir, { recursive: true, force: true }).catch(() => {});
+  await mkdir(hostingerExportDir, { recursive: true });
+
+  await cp(distClient, hostingerExportDir, { recursive: true });
+  await cp(resolve(projectRoot, "hostinger"), hostingerExportDir, { recursive: true });
+  await writeFile(resolve(hostingerExportDir, "index.html"), html, "utf-8");
+  await writeFile(resolve(distClient, "index.html"), html, "utf-8");
+  console.log("Hostinger static package exported successfully!");
 });
 
 test("renders SEO metadata routes", async () => {

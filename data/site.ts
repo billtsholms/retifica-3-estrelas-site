@@ -1,13 +1,15 @@
 export const siteConfig = {
   name: "Retífica Três Estrelas",
+  url: "https://retificatresestrelas.com.br",
   since: 1990,
   whatsapp: {
     number: "5517991904957",
     display: "(17) 99190-4957",
   },
   address: {
-    street: "Av. Dr. Aniloel Nazareth, 2375",
+    street: "R. Dionizio Zacaron, 2375 - Vila Toninho",
     city: "São José do Rio Preto – SP",
+    cep: "15062-047",
   },
   instagram: {
     handle: "@retificatresestrelas",
@@ -150,4 +152,32 @@ export const differentials = [
   { title: "Garantia no serviço", icon: "shield" },
   { title: "Retirada e entrega", icon: "truck" },
   { title: "Atendimento regional", icon: "map" },
+] as const;
+
+export const faqs = [
+  {
+    question: "A Retífica Três Estrelas atende motores diesel?",
+    answer:
+      "Sim. A oficina é especializada em motores diesel e também atende motores a gasolina e flex.",
+  },
+  {
+    question: "Quais tipos de veículos são atendidos?",
+    answer:
+      "Atendemos carros, caminhonetes, vans, utilitários, veículos agrícolas e caminhões.",
+  },
+  {
+    question: "Como solicitar um orçamento?",
+    answer:
+      "Clique em um dos botões de WhatsApp e informe o veículo, o motor e o problema apresentado. A equipe orientará os próximos passos.",
+  },
+  {
+    question: "Onde fica a Retífica Três Estrelas?",
+    answer:
+      "A oficina fica na R. Dionizio Zacaron, 2375 - Vila Toninho, em São José do Rio Preto - SP, CEP 15062-047.",
+  },
+  {
+    question: "A oficina faz diagnóstico do motor?",
+    answer:
+      "Sim. A equipe realiza análise técnica para identificar a causa do problema e indicar o serviço adequado.",
+  },
 ] as const;

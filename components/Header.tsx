@@ -83,6 +83,7 @@ export function Header() {
           <a
             className="button button--primary button--whatsapp"
             href={getWhatsAppUrl("cabecalho")}
+            data-whatsapp-source="cabecalho"
             target="_blank"
             rel="noreferrer"
           >
@@ -122,6 +123,7 @@ export function Header() {
             <a
               className="button button--primary button--whatsapp"
               href={getWhatsAppUrl("cabecalho-mobile")}
+              data-whatsapp-source="cabecalho-mobile"
               target="_blank"
               rel="noreferrer"
             >

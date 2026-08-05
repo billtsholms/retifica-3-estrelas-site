@@ -68,6 +68,7 @@ export function Footer() {
             </a>
             <a
               href={getWhatsAppUrl("rodape")}
+              data-whatsapp-source="rodape"
               target="_blank"
               rel="noreferrer"
               aria-label="WhatsApp da Retífica Três Estrelas"
@@ -122,7 +123,7 @@ export function Footer() {
             <MapPin size={18} aria-hidden="true" />
             <span>
               <small>Onde estamos</small>
-              {siteConfig.address.city}
+              {siteConfig.address.street}
             </span>
           </a>
         </div>
@@ -172,10 +173,16 @@ export function Footer() {
           <details className="privacy-details" id="privacidade">
             <summary>Política de privacidade</summary>
             <p>
-              Este site não possui formulário próprio de coleta. As informações
-              enviadas pelo WhatsApp são utilizadas apenas para responder ao
-              atendimento solicitado.
+              As informações enviadas pelo WhatsApp são utilizadas para
+              responder ao atendimento solicitado. Com sua autorização, o site
+              também utiliza tecnologias de medição do Google e da Meta para
+              analisar visitas, cliques de contato e o desempenho das
+              campanhas. Você pode recusar a medição sem perder o acesso ao
+              site.
             </p>
+            <button type="button" data-open-cookie-settings>
+              Alterar preferências de medição
+            </button>
           </details>
         </div>
       </div>

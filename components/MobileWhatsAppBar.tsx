@@ -1,17 +1,18 @@
-import { MessageCircle } from "lucide-react";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
+import { WhatsAppIcon } from "@/components/WhatsAppIcon";
 
 export function MobileWhatsAppBar() {
   return (
     <div className="mobile-whatsapp-bar">
       <a
-        className="button button--primary"
+        className="mobile-whatsapp-button"
         href={getWhatsAppUrl("botao-flutuante")}
+        data-whatsapp-source="botao-flutuante-mobile"
         target="_blank"
         rel="noreferrer"
+        aria-label="Falar com a Retífica Três Estrelas pelo WhatsApp"
       >
-        <MessageCircle size={19} aria-hidden="true" />
-        Fale conosco
+        <WhatsAppIcon className="mobile-whatsapp-button__icon" />
       </a>
     </div>
   );

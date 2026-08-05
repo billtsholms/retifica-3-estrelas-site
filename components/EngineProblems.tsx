@@ -19,6 +19,7 @@ export function EngineProblems() {
               className="problem-card"
               key={problem.title}
               href={getWhatsAppUrl("problemas")}
+              data-whatsapp-source={`problema-${problem.icon}`}
               target="_blank"
               rel="noreferrer"
               aria-label={`${problem.title}: falar com a Retífica Três Estrelas`}
@@ -32,6 +33,7 @@ export function EngineProblems() {
           <a
             className="button button--primary"
             href={getWhatsAppUrl("problemas")}
+            data-whatsapp-source="problemas-cta"
             target="_blank"
             rel="noreferrer"
           >

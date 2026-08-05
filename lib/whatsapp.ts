@@ -1,19 +1,8 @@
 import { siteConfig } from "@/data/site";
 
-const baseMessage = `Olá! Gostaria de solicitar uma avaliação para o motor do meu veículo.
+const baseMessage =
+  "Olá vim pelo google e gostaria de solicitar um orçamento.";
 
-Veículo:
-Ano:
-Motorização:
-Combustível:
-Cidade:
-Problema apresentado:
-O veículo está funcionando ou está parado?`;
-
-export function getWhatsAppUrl(source: string) {
-  const message = `${baseMessage}
-
-Origem do contato: ${source}`;
-
-  return `https://wa.me/${siteConfig.whatsapp.number}?text=${encodeURIComponent(message)}`;
+export function getWhatsAppUrl(_source: string) {
+  return `https://wa.me/${siteConfig.whatsapp.number}?text=${encodeURIComponent(baseMessage)}`;
 }
