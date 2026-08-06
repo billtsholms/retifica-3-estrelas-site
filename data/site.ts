@@ -9,7 +9,7 @@ export const siteConfig = {
   address: {
     street: "R. Dionizio Zacaron, 2375 - Vila Toninho",
     city: "São José do Rio Preto – SP",
-    cep: "15062-047",
+    cep: "15077-010",
   },
   instagram: {
     handle: "@retificatresestrelas",
@@ -173,7 +173,7 @@ export const faqs = [
   {
     question: "Onde fica a Retífica Três Estrelas?",
     answer:
-      "A oficina fica na R. Dionizio Zacaron, 2375 - Vila Toninho, em São José do Rio Preto - SP, CEP 15062-047.",
+      "A oficina fica na R. Dionizio Zacaron, 2375 - Vila Toninho, em São José do Rio Preto - SP, CEP 15077-010.",
   },
   {
     question: "A oficina faz diagnóstico do motor?",

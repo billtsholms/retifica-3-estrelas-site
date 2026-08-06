@@ -26,10 +26,15 @@ async function renderFull() {
 
   let html = await response.text();
 
-  // Replace address strings
+  // Replace address strings & CEP
   html = html.replaceAll(
     "Av. Dr. Aniloel Nazareth, 2375, em São José do Rio Preto, São Paulo.",
-    "R. Dionizio Zacaron, 2375 - Vila Toninho, em São José do Rio Preto - SP, CEP 15062-047."
+    "R. Dionizio Zacaron, 2375 - Vila Toninho, em São José do Rio Preto - SP, CEP 15077-010."
+  );
+
+  html = html.replaceAll(
+    "15062-047",
+    "15077-010"
   );
 
   html = html.replaceAll(
