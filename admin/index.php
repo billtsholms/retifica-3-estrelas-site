@@ -37,7 +37,10 @@ function readJson(string $path, array $fallback = []): array
 
 function ensureDataDirectory(): bool
 {
-    if (!is_dir(DATA_DIR) && !(mkdir(DATA_DIR, 0700, true) || is_dir(DATA_DIR))) {
+    if (!is_dir(DATA_DIR)) {
+        @mkdir(DATA_DIR, 0755, true);
+    }
+    if (!is_dir(DATA_DIR)) {
         return false;
     }
 
@@ -48,7 +51,7 @@ function ensureDataDirectory(): bool
             "Require all denied\nDeny from all\nOptions -Indexes\n",
             LOCK_EX
         );
-        @chmod($protectionFile, 0600);
+        @chmod($protectionFile, 0644);
     }
 
     return true;
@@ -60,24 +63,32 @@ function writeJson(string $path, array $data): bool
         return false;
     }
 
-    $temporary = $path . '.tmp-' . bin2hex(random_bytes(6));
     $encoded = json_encode(
         $data,
         JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
     );
 
-    if ($encoded === false || file_put_contents($temporary, $encoded, LOCK_EX) === false) {
+    if ($encoded === false) {
         return false;
     }
 
-    @chmod($temporary, 0600);
-    if (!rename($temporary, $path)) {
+    $temporary = $path . '.tmp-' . bin2hex(random_bytes(6));
+    if (@file_put_contents($temporary, $encoded, LOCK_EX) !== false) {
+        @chmod($temporary, 0644);
+        if (@rename($temporary, $path)) {
+            @chmod($path, 0644);
+            return true;
+        }
         @unlink($temporary);
-        return false;
     }
 
-    @chmod($path, 0600);
-    return true;
+    // Fallback de escrita direta caso rename seja restrito no servidor
+    if (@file_put_contents($path, $encoded, LOCK_EX) !== false) {
+        @chmod($path, 0644);
+        return true;
+    }
+
+    return false;
 }
 
 function redirectToPanel(): void
