@@ -103,7 +103,7 @@ export function TrackingManager() {
     const initialize = async () => {
       if (
         initialized ||
-        window.localStorage.getItem(CONSENT_KEY) !== "granted"
+        window.localStorage.getItem(CONSENT_KEY) === "denied"
       ) {
         return;
       }
@@ -134,7 +134,7 @@ export function TrackingManager() {
       const target = event.target;
       if (!(target instanceof Element)) return;
       const link = target.closest<HTMLAnchorElement>('a[href*="wa.me"]');
-      if (!link || window.localStorage.getItem(CONSENT_KEY) !== "granted") {
+      if (!link || window.localStorage.getItem(CONSENT_KEY) === "denied") {
         return;
       }
 

@@ -9,10 +9,10 @@ header('X-Content-Type-Options: nosniff');
 $defaults = [
     'mode' => 'direct',
     'gtmId' => '',
-    'ga4MeasurementId' => '',
-    'googleAdsId' => '',
-    'googleAdsConversionLabel' => '',
-    'metaPixelId' => '',
+    'ga4MeasurementId' => 'G-1686XJQTX1',
+    'googleAdsId' => 'AW-18340706203',
+    'googleAdsConversionLabel' => '3YOeCJCQ3tocEJvvw6IE',
+    'metaPixelId' => '1767114587863982',
 ];
 
 $configPath = __DIR__ . '/.tracking-admin/tracking.json';
