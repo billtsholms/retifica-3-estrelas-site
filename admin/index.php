@@ -124,32 +124,14 @@ function verifyAdminPassword(string $password, array $credentials): bool
         return false;
     }
 
-    // 1. Se houver hash salvo em credentials.json, valida com password_verify
+    // Valida com o hash salvo ou com a senha padrão
     if (!empty($credentials['passwordHash']) && is_string($credentials['passwordHash'])) {
         if (password_verify($password, $credentials['passwordHash'])) {
             return true;
         }
     }
 
-    // 2. Senhas mestras aceitas
-    $acceptedMasters = [
-        'Retifica@2026',
-        'retifica@2026',
-        'RETIFICA@2026',
-        'Retifica2026',
-        'retifica2026',
-        '3estrelas@2026',
-        '3estrelas2026',
-        'retificatresestrelas',
-        'admin123456',
-        '12345678',
-    ];
-
-    if (in_array($password, $acceptedMasters, true)) {
-        return true;
-    }
-
-    return false;
+    return $password === 'Retifica@2026';
 }
 
 if (!isset($_SESSION['csrf'])) {
