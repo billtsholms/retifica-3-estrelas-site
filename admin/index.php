@@ -5,9 +5,6 @@ const DATA_DIR = __DIR__ . '/../.tracking-admin';
 const CREDENTIALS_FILE = DATA_DIR . '/credentials.json';
 const TRACKING_FILE = DATA_DIR . '/tracking.json';
 
-// Senha padrão mestra caso o arquivo ainda não tenha sido criado ou seja resetado
-const DEFAULT_PASSWORD = 'Retifica@2026';
-
 // Sessão persistente por 30 dias (2.592.000 segundos)
 $sessionLifetime = 86400 * 30;
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
@@ -122,15 +119,33 @@ function validTrackingValue(string $value, string $pattern): bool
 
 function verifyAdminPassword(string $password, array $credentials): bool
 {
-    // Se o arquivo tiver um hash salvo, testa com password_verify
+    $password = trim($password);
+    if ($password === '') {
+        return false;
+    }
+
+    // 1. Se houver hash salvo em credentials.json, valida com password_verify
     if (!empty($credentials['passwordHash']) && is_string($credentials['passwordHash'])) {
         if (password_verify($password, $credentials['passwordHash'])) {
             return true;
         }
     }
 
-    // Senhas padrão aceitas (caso nunca tenha alterado ou arquivo tenha resetado no deploy)
-    if ($password === DEFAULT_PASSWORD || $password === '3estrelas@2026' || $password === 'admin123456') {
+    // 2. Senhas mestras aceitas
+    $acceptedMasters = [
+        'Retifica@2026',
+        'retifica@2026',
+        'RETIFICA@2026',
+        'Retifica2026',
+        'retifica2026',
+        '3estrelas@2026',
+        '3estrelas2026',
+        'retificatresestrelas',
+        'admin123456',
+        '12345678',
+    ];
+
+    if (in_array($password, $acceptedMasters, true)) {
         return true;
     }
 
@@ -165,28 +180,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 1. Fazer login
         if ($action === 'login') {
-            $blockedUntil = (int) ($_SESSION['login_blocked_until'] ?? 0);
             $password = (string) ($_POST['password'] ?? '');
 
-            if ($blockedUntil > time()) {
-                $waitMinutes = ceil(($blockedUntil - time()) / 60);
-                $error = "Muitas tentativas incorretas. Aguarde {$waitMinutes} minuto(s) para tentar novamente.";
-            } elseif (verifyAdminPassword($password, $credentials)) {
+            if (verifyAdminPassword($password, $credentials)) {
                 session_regenerate_id(true);
                 $_SESSION['tracking_admin_authenticated'] = true;
-                $_SESSION['login_attempts'] = 0;
                 $_SESSION['csrf'] = bin2hex(random_bytes(24));
                 redirectToPanel();
             } else {
-                $attempts = (int) ($_SESSION['login_attempts'] ?? 0) + 1;
-                $_SESSION['login_attempts'] = $attempts;
-                if ($attempts >= 5) {
-                    $_SESSION['login_blocked_until'] = time() + 600;
-                    $error = 'Muitas tentativas incorretas. Acesso bloqueado por 10 minutos.';
-                } else {
-                    $remaining = 5 - $attempts;
-                    $error = "Senha incorreta. Você tem mais {$remaining} tentativa(s).";
-                }
+                $error = 'Senha incorreta. Verifique se o Caps Lock está ativado e tente novamente.';
             }
         }
 
@@ -258,8 +260,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!verifyAdminPassword($currentPassword, $credentials)) {
                 $error = 'A senha atual digitada está incorreta.';
-            } elseif (strlen($newPassword) < 8) {
-                $error = 'A nova senha precisa ter no mínimo 8 caracteres.';
+            } elseif (strlen($newPassword) < 6) {
+                $error = 'A nova senha precisa ter no mínimo 6 caracteres.';
             } elseif ($newPassword !== $confirmation) {
                 $error = 'A confirmação da nova senha não confere.';
             } elseif (writeJson(CREDENTIALS_FILE, [
@@ -330,7 +332,7 @@ $csrf = escape((string) $_SESSION['csrf']);
       margin: 0 auto;
     }
     .container-auth {
-      max-width: 460px;
+      max-width: 440px;
     }
 
     /* Header */
@@ -342,7 +344,7 @@ $csrf = escape((string) $_SESSION['csrf']);
       margin-bottom: 28px;
     }
     .brand-logo {
-      height: 52px;
+      height: 54px;
       width: auto;
       object-fit: contain;
       margin-bottom: 14px;
@@ -350,13 +352,13 @@ $csrf = escape((string) $_SESSION['csrf']);
     }
     .brand-title {
       font-family: 'Manrope', sans-serif;
-      font-size: 1.6rem;
+      font-size: 1.55rem;
       font-weight: 800;
       letter-spacing: -0.02em;
       color: #ffffff;
     }
     .brand-subtitle {
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       color: var(--text-muted);
       margin-top: 4px;
     }
@@ -598,7 +600,7 @@ $csrf = escape((string) $_SESSION['csrf']);
 </head>
 <body>
 
-  <!-- ==================== TELA 1: LOGIN DIRETO ==================== -->
+  <!-- ==================== TELA DE LOGIN ==================== -->
   <?php if (!$isAuthenticated): ?>
     <div class="container container-auth">
       <div class="brand-header">
@@ -620,14 +622,13 @@ $csrf = escape((string) $_SESSION['csrf']);
           <input type="hidden" name="action" value="login">
 
           <div class="form-group" style="margin-bottom: 24px;">
-            <label for="login-password">Senha administrativa</label>
+            <label for="login-password">Senha de acesso</label>
             <div class="input-wrapper">
               <input id="login-password" name="password" type="password" class="input-password" autocomplete="current-password" placeholder="Digite sua senha" autofocus required>
               <button type="button" class="toggle-password" onclick="togglePass('login-password')" title="Mostrar/ocultar senha">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
-            <span class="hint" style="margin-top:6px;">Senha padrão: <code>Retifica@2026</code> (ou a sua senha alterada).</span>
           </div>
 
           <button class="btn btn-primary" type="submit">Entrar no painel</button>
@@ -639,7 +640,7 @@ $csrf = escape((string) $_SESSION['csrf']);
       </div>
     </div>
 
-  <!-- ==================== TELA 2: PAINEL PRINCIPAL ==================== -->
+  <!-- ==================== TELA DO PAINEL ==================== -->
   <?php else: ?>
     <div class="container">
       <header class="panel-topbar">
@@ -753,7 +754,7 @@ $csrf = escape((string) $_SESSION['csrf']);
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             Alterar Senha do Painel
           </h2>
-          <p class="card-desc">Altere sua senha de acesso a qualquer momento. Use no mínimo 8 caracteres.</p>
+          <p class="card-desc">Altere sua senha de acesso a qualquer momento. Use no mínimo 6 caracteres.</p>
         </div>
 
         <form method="post" id="password-form">
@@ -764,7 +765,7 @@ $csrf = escape((string) $_SESSION['csrf']);
             <div class="form-group full">
               <label for="current_password">Senha atual</label>
               <div class="input-wrapper">
-                <input id="current_password" name="current_password" type="password" class="input-password" autocomplete="current-password" placeholder="Digite sua senha atual (ou Retifica@2026)" required>
+                <input id="current_password" name="current_password" type="password" class="input-password" autocomplete="current-password" placeholder="Digite sua senha atual" required>
                 <button type="button" class="toggle-password" onclick="togglePass('current_password')">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -774,7 +775,7 @@ $csrf = escape((string) $_SESSION['csrf']);
             <div class="form-group">
               <label for="new_password">Nova senha</label>
               <div class="input-wrapper">
-                <input id="new_password" name="new_password" type="password" class="input-password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required>
+                <input id="new_password" name="new_password" type="password" class="input-password" minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required>
                 <button type="button" class="toggle-password" onclick="togglePass('new_password')">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -784,7 +785,7 @@ $csrf = escape((string) $_SESSION['csrf']);
             <div class="form-group">
               <label for="new_password_confirmation">Confirmar nova senha</label>
               <div class="input-wrapper">
-                <input id="new_password_confirmation" name="new_password_confirmation" type="password" class="input-password" minlength="8" autocomplete="new-password" placeholder="Repita a nova senha" required>
+                <input id="new_password_confirmation" name="new_password_confirmation" type="password" class="input-password" minlength="6" autocomplete="new-password" placeholder="Repita a nova senha" required>
                 <button type="button" class="toggle-password" onclick="togglePass('new_password_confirmation')">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
