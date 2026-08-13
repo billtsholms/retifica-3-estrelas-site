@@ -5,19 +5,25 @@ const DATA_DIR = __DIR__ . '/../.tracking-admin';
 const CREDENTIALS_FILE = DATA_DIR . '/credentials.json';
 const TRACKING_FILE = DATA_DIR . '/tracking.json';
 
-$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+// Sessão persistente por 30 dias (2.592.000 segundos)
+$sessionLifetime = 86400 * 30;
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+ini_set('session.gc_maxlifetime', (string) $sessionLifetime);
+ini_set('session.cookie_lifetime', (string) $sessionLifetime);
+
 session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/admin',
+    'lifetime' => $sessionLifetime,
+    'path' => '/',
     'secure' => $isHttps,
     'httponly' => true,
-    'samesite' => 'Strict',
+    'samesite' => 'Lax',
 ]);
 session_start();
 
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
-header('Referrer-Policy: no-referrer');
+header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
 function escape(string $value): string
@@ -30,8 +36,11 @@ function readJson(string $path, array $fallback = []): array
     if (!is_readable($path)) {
         return $fallback;
     }
-
-    $decoded = json_decode((string) file_get_contents($path), true);
+    $content = @file_get_contents($path);
+    if ($content === false || $content === '') {
+        return $fallback;
+    }
+    $decoded = json_decode($content, true);
     return is_array($decoded) ? $decoded : $fallback;
 }
 
@@ -82,7 +91,6 @@ function writeJson(string $path, array $data): bool
         @unlink($temporary);
     }
 
-    // Fallback de escrita direta caso rename seja restrito no servidor
     if (@file_put_contents($path, $encoded, LOCK_EX) !== false) {
         @chmod($path, 0644);
         return true;
@@ -134,23 +142,24 @@ $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = (string) ($_POST['csrf'] ?? '');
     if (!validCsrfToken($csrfToken)) {
-        $error = 'Sua sessão expirou. Atualize a página e tente novamente.';
+        $error = 'Sua sessão expirou por segurança. Atualize a página e tente novamente.';
     } else {
         $action = (string) ($_POST['action'] ?? '');
 
+        // 1. Criar primeira senha
         if ($action === 'setup' && !$isConfigured) {
             $password = (string) ($_POST['password'] ?? '');
             $confirmation = (string) ($_POST['password_confirmation'] ?? '');
 
-            if (strlen($password) < 12) {
-                $error = 'A senha precisa ter pelo menos 12 caracteres.';
+            if (strlen($password) < 8) {
+                $error = 'A senha precisa ter pelo menos 8 caracteres.';
             } elseif ($password !== $confirmation) {
-                $error = 'As senhas informadas não são iguais.';
+                $error = 'As senhas informadas não são iguais. Digite novamente.';
             } elseif (!writeJson(CREDENTIALS_FILE, [
                 'passwordHash' => password_hash($password, PASSWORD_DEFAULT),
                 'createdAt' => gmdate('c'),
             ])) {
-                $error = 'Não foi possível criar a configuração protegida no servidor.';
+                $error = 'Erro de permissão no servidor. Não foi possível criar o arquivo de credenciais.';
             } else {
                 session_regenerate_id(true);
                 $_SESSION['tracking_admin_authenticated'] = true;
@@ -159,12 +168,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        // 2. Fazer login
         if ($action === 'login' && $isConfigured) {
             $blockedUntil = (int) ($_SESSION['login_blocked_until'] ?? 0);
             $password = (string) ($_POST['password'] ?? '');
 
             if ($blockedUntil > time()) {
-                $error = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+                $waitMinutes = ceil(($blockedUntil - time()) / 60);
+                $error = "Muitas tentativas incorretas. Aguarde {$waitMinutes} minuto(s) para tentar novamente.";
             } elseif (password_verify($password, (string) $credentials['passwordHash'])) {
                 session_regenerate_id(true);
                 $_SESSION['tracking_admin_authenticated'] = true;
@@ -176,18 +187,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['login_attempts'] = $attempts;
                 if ($attempts >= 5) {
                     $_SESSION['login_blocked_until'] = time() + 600;
+                    $error = 'Muitas tentativas incorretas. Acesso bloqueado por 10 minutos.';
+                } else {
+                    $remaining = 5 - $attempts;
+                    $error = "Senha incorreta. Você tem mais {$remaining} tentativa(s).";
                 }
-                $error = 'Senha incorreta.';
             }
         }
 
+        // 3. Sair
         if ($action === 'logout') {
             $_SESSION = [];
+            if (ini_get('session.use_cookies')) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+            }
             session_destroy();
             redirectToPanel();
         }
 
-        if ($action === 'save' && $isAuthenticated) {
+        // 4. Salvar tags de rastreamento (isolado, NUNCA afeta a senha)
+        if ($action === 'save_tracking' && $isAuthenticated) {
             $mode = ($_POST['mode'] ?? 'direct') === 'gtm' ? 'gtm' : 'direct';
             $values = [
                 'gtmId' => strtoupper(trim((string) ($_POST['gtm_id'] ?? ''))),
@@ -207,17 +227,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             foreach ($patterns as $key => $pattern) {
                 if (!validTrackingValue($values[$key], $pattern)) {
-                    $error = 'Um dos identificadores informados não possui um formato válido.';
+                    $error = 'Um dos identificadores informados está em formato inválido. Verifique os campos.';
                     break;
                 }
             }
 
             if ($error === '' && $mode === 'gtm' && $values['gtmId'] === '') {
-                $error = 'Informe o ID do Google Tag Manager para usar o modo GTM.';
+                $error = 'Informe o ID do Google Tag Manager (GTM-XXXXXXX) para salvar no modo GTM.';
             }
 
             if ($error === '' && $values['googleAdsConversionLabel'] !== '' && $values['googleAdsId'] === '') {
-                $error = 'Informe o ID do Google Ads junto com o rótulo de conversão.';
+                $error = 'Informe o ID do Google Ads (AW-XXXXXXXXX) junto com o rótulo de conversão.';
             }
 
             if ($error === '') {
@@ -228,32 +248,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
 
                 if (writeJson(TRACKING_FILE, $config)) {
-                    $success = 'Configurações salvas. As alterações já estão ativas no site.';
+                    $success = '✓ Configurações salvas com sucesso! As tags já estão ativas no site.';
                 } else {
-                    $error = 'Não foi possível salvar. Verifique as permissões da hospedagem.';
+                    $error = 'Não foi possível gravar as alterações. Verifique as permissões de pasta na Hostinger.';
                 }
             }
+        }
 
+        // 5. Alterar senha administrativa (formulário 100% independente)
+        if ($action === 'change_password' && $isAuthenticated) {
+            $currentPassword = (string) ($_POST['current_password'] ?? '');
             $newPassword = (string) ($_POST['new_password'] ?? '');
-            if ($error === '' && $newPassword !== '') {
-                $currentPassword = (string) ($_POST['current_password'] ?? '');
-                $confirmation = (string) ($_POST['new_password_confirmation'] ?? '');
+            $confirmation = (string) ($_POST['new_password_confirmation'] ?? '');
 
-                if (!password_verify($currentPassword, (string) $credentials['passwordHash'])) {
-                    $error = 'A senha atual não confere.';
-                } elseif (strlen($newPassword) < 12) {
-                    $error = 'A nova senha precisa ter pelo menos 12 caracteres.';
-                } elseif ($newPassword !== $confirmation) {
-                    $error = 'A confirmação da nova senha não confere.';
-                } elseif (writeJson(CREDENTIALS_FILE, [
-                    'passwordHash' => password_hash($newPassword, PASSWORD_DEFAULT),
-                    'createdAt' => $credentials['createdAt'] ?? gmdate('c'),
-                    'updatedAt' => gmdate('c'),
-                ])) {
-                    $success = 'Configurações e senha atualizadas com sucesso.';
-                } else {
-                    $error = 'Não foi possível atualizar a senha.';
-                }
+            if (!password_verify($currentPassword, (string) $credentials['passwordHash'])) {
+                $error = 'A senha atual digitada está incorreta.';
+            } elseif (strlen($newPassword) < 8) {
+                $error = 'A nova senha precisa ter no mínimo 8 caracteres.';
+            } elseif ($newPassword !== $confirmation) {
+                $error = 'A confirmação da nova senha não confere.';
+            } elseif (writeJson(CREDENTIALS_FILE, [
+                'passwordHash' => password_hash($newPassword, PASSWORD_DEFAULT),
+                'createdAt' => $credentials['createdAt'] ?? gmdate('c'),
+                'updatedAt' => gmdate('c'),
+            ])) {
+                $credentials = readJson(CREDENTIALS_FILE);
+                $success = '✓ Senha administrativa alterada com sucesso!';
+            } else {
+                $error = 'Erro ao salvar a nova senha no servidor.';
             }
         }
     }
@@ -268,201 +290,592 @@ $csrf = escape((string) $_SESSION['csrf']);
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>Painel de rastreamento | Retífica Três Estrelas</title>
+  <title>Painel Administrativo | Retífica Três Estrelas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{--gold:#d39a2d;--gold-dark:#9e6d19;--ink:#0b0c0d;--panel:#111315;--line:#2b2e31;--muted:#a4a7ab;--danger:#ff8d87;--ok:#7be0ad}
-    *{box-sizing:border-box}
-    body{margin:0;min-height:100vh;background:radial-gradient(circle at 20% 0,rgba(211,154,45,.14),transparent 30%),#08090a;color:#fff;font-family:Inter,Arial,sans-serif}
-    a{color:inherit}
-    button,input,select{font:inherit}
-    .shell{width:min(100% - 30px,980px);margin:0 auto;padding:34px 0 70px}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px}
-    .brand{display:flex;align-items:center;gap:14px}
-    .brand-mark{display:grid;width:48px;height:48px;place-items:center;border:1px solid rgba(211,154,45,.55);border-radius:14px;background:rgba(211,154,45,.1);color:var(--gold);font-size:22px;font-weight:900}
-    h1{margin:0;font-size:clamp(1.35rem,4vw,2rem);line-height:1.15}
-    .subtitle{margin:5px 0 0;color:var(--muted);font-size:.86rem}
-    .card{border:1px solid var(--line);border-radius:20px;background:rgba(17,19,21,.96);padding:clamp(20px,4vw,34px);box-shadow:0 24px 70px rgba(0,0,0,.3)}
-    .auth-card{max-width:520px;margin:9vh auto 0}
-    .notice{margin:0 0 20px;border-radius:12px;padding:12px 14px;font-size:.86rem}
-    .notice.error{border:1px solid rgba(255,141,135,.35);background:rgba(255,141,135,.08);color:var(--danger)}
-    .notice.success{border:1px solid rgba(123,224,173,.32);background:rgba(123,224,173,.08);color:var(--ok)}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-    .field{display:grid;gap:7px}
-    .field.full{grid-column:1/-1}
-    label{font-size:.78rem;font-weight:800;color:#e5e6e8}
-    input,select{width:100%;height:48px;border:1px solid #36393d;border-radius:10px;background:#0b0c0d;color:#fff;padding:0 13px;outline:none}
-    input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(211,154,45,.12)}
-    small{color:var(--muted);font-size:.72rem;line-height:1.45}
-    .section-title{margin:30px 0 15px;border-top:1px solid var(--line);padding-top:24px;font-size:1rem}
-    .mode-help{margin:8px 0 20px;border-left:3px solid var(--gold);background:#0c0d0e;color:var(--muted);padding:11px 13px;font-size:.79rem;line-height:1.55}
-    .actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:28px}
-    .button{display:inline-flex;min-height:46px;align-items:center;justify-content:center;border:1px solid transparent;border-radius:10px;cursor:pointer;padding:11px 18px;font-weight:850}
-    .button.primary{background:var(--gold);color:#090a0b}
-    .button.ghost{border-color:#3b3e42;background:transparent;color:#fff}
-    .logout{margin:0}
-    .status{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:.75rem}
-    .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 5px rgba(123,224,173,.08)}
-    [data-direct],[data-gtm]{transition:opacity .15s ease}
-    .hidden-mode{display:none}
-    @media(max-width:680px){.shell{width:min(100% - 20px,980px);padding-top:18px}.top{align-items:flex-start}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.actions{align-items:stretch;flex-direction:column}.actions .button{width:100%}.status{order:2}}
+    :root {
+      --gold: #d39a2d;
+      --gold-hover: #e5ab3b;
+      --gold-light: rgba(211, 154, 45, 0.12);
+      --gold-border: rgba(211, 154, 45, 0.35);
+      --bg-dark: #070809;
+      --card-bg: rgba(16, 18, 20, 0.94);
+      --card-border: #22262a;
+      --input-bg: #0b0c0e;
+      --input-border: #2e3338;
+      --text: #f0f2f5;
+      --text-muted: #9aa0a6;
+      --danger: #ff6b6b;
+      --danger-bg: rgba(255, 107, 107, 0.1);
+      --danger-border: rgba(255, 107, 107, 0.3);
+      --success: #3ddc84;
+      --success-bg: rgba(61, 220, 132, 0.1);
+      --success-border: rgba(61, 220, 132, 0.3);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% -10%, rgba(211, 154, 45, 0.18), transparent 45%),
+                  radial-gradient(circle at 10% 80%, rgba(211, 154, 45, 0.06), transparent 35%),
+                  var(--bg-dark);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px 48px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .container-auth {
+      max-width: 460px;
+    }
+
+    /* Header */
+    .brand-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .brand-logo {
+      height: 52px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+    }
+    .brand-title {
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+    .brand-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Top bar inside authenticated panel */
+    .panel-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .panel-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .panel-topbar-logo {
+      height: 38px;
+      width: auto;
+    }
+    .panel-topbar-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      margin-bottom: 20px;
+    }
+    .card-header {
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Notices */
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      margin-bottom: 22px;
+      line-height: 1.45;
+    }
+    .alert-error {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: #ff9e9e;
+    }
+    .alert-success {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: #6ee7b7;
+    }
+
+    /* Forms & Fields */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+    label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #d1d5db;
+    }
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    input, select {
+      width: 100%;
+      height: 48px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      padding: 0 14px;
+      color: #fff;
+      font-size: 0.92rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    input:focus, select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(211, 154, 45, 0.18);
+    }
+    input::placeholder {
+      color: #555b62;
+    }
+    .input-password {
+      padding-right: 44px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease;
+    }
+    .toggle-password:hover {
+      color: #fff;
+    }
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 48px;
+      padding: 0 22px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: #0b0c0e;
+      box-shadow: 0 4px 16px rgba(211, 154, 45, 0.25);
+      width: 100%;
+    }
+    .btn-primary:hover {
+      background: var(--gold-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(211, 154, 45, 0.35);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #33383f;
+      color: #d1d5db;
+    }
+    .btn-outline:hover {
+      border-color: #555c66;
+      color: #fff;
+      background: rgba(255,255,255,0.03);
+    }
+    .btn-sm {
+      height: 38px;
+      padding: 0 14px;
+      font-size: 0.82rem;
+    }
+
+    /* Status indicator */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(61, 220, 132, 0.08);
+      border: 1px solid rgba(61, 220, 132, 0.2);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #6ee7b7;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3ddc84;
+      box-shadow: 0 0 10px #3ddc84;
+    }
+
+    /* Footer */
+    .admin-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.78rem;
+      color: #666c75;
+    }
+    .admin-footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .admin-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .hidden-mode { display: none !important; }
+
+    @media (max-width: 680px) {
+      .card { padding: 22px 18px; border-radius: 16px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .panel-topbar { flex-direction: column; gap: 14px; align-items: flex-start; }
+    }
   </style>
 </head>
 <body>
-  <main class="shell">
-    <header class="top">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">3★</span>
-        <div>
-          <h1>Painel de rastreamento</h1>
-          <p class="subtitle">Retífica Três Estrelas</p>
-        </div>
+
+  <!-- ==================== TELA 1: PRIMEIRO ACESSO ==================== -->
+  <?php if (!$isConfigured): ?>
+    <div class="container container-auth">
+      <div class="brand-header">
+        <img src="/brand/logo-v2.png" alt="Retífica Três Estrelas" class="brand-logo">
+        <h1 class="brand-title">Primeiro Acesso</h1>
+        <p class="brand-subtitle">Crie sua senha de administrador para proteger o painel.</p>
       </div>
-      <?php if ($isAuthenticated): ?>
-        <form class="logout" method="post">
-          <input type="hidden" name="csrf" value="<?= $csrf ?>">
-          <input type="hidden" name="action" value="logout">
-          <button class="button ghost" type="submit">Sair</button>
-        </form>
+
+      <?php if ($error !== ''): ?>
+        <div class="alert alert-error">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div><?= escape($error) ?></div>
+        </div>
       <?php endif; ?>
-    </header>
 
-    <?php if ($error !== ''): ?>
-      <div class="notice error" role="alert"><?= escape($error) ?></div>
-    <?php endif; ?>
-    <?php if ($success !== ''): ?>
-      <div class="notice success" role="status"><?= escape($success) ?></div>
-    <?php endif; ?>
-
-    <?php if (!$isConfigured): ?>
-      <section class="card auth-card">
-        <h2>Primeiro acesso</h2>
-        <p class="subtitle">Crie a senha que protegerá as configurações de anúncios. Use pelo menos 12 caracteres.</p>
+      <div class="card">
         <form method="post">
           <input type="hidden" name="csrf" value="<?= $csrf ?>">
           <input type="hidden" name="action" value="setup">
-          <div class="grid" style="margin-top:22px">
-            <div class="field full">
-              <label for="password">Nova senha</label>
-              <input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="password">Criar nova senha</label>
+            <div class="input-wrapper">
+              <input id="password" name="password" type="password" class="input-password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required>
+              <button type="button" class="toggle-password" onclick="togglePass('password')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
             </div>
-            <div class="field full">
-              <label for="password_confirmation">Confirmar senha</label>
-              <input id="password_confirmation" name="password_confirmation" type="password" minlength="12" autocomplete="new-password" required>
+            <span class="hint">Escolha uma senha segura que você lembre com facilidade.</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 24px;">
+            <label for="password_confirmation">Confirmar senha</label>
+            <div class="input-wrapper">
+              <input id="password_confirmation" name="password_confirmation" type="password" class="input-password" minlength="8" autocomplete="new-password" placeholder="Repita a senha" required>
+              <button type="button" class="toggle-password" onclick="togglePass('password_confirmation')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
             </div>
           </div>
-          <div class="actions">
-            <small>Essa senha não é enviada para terceiros.</small>
-            <button class="button primary" type="submit">Criar acesso seguro</button>
-          </div>
+
+          <button class="btn btn-primary" type="submit">Criar senha e acessar</button>
         </form>
-      </section>
-    <?php elseif (!$isAuthenticated): ?>
-      <section class="card auth-card">
-        <h2>Entrar no painel</h2>
-        <p class="subtitle">Informe a senha administrativa criada no primeiro acesso.</p>
+      </div>
+
+      <div class="admin-footer">
+        Retífica Três Estrelas &bull; <a href="/" target="_blank">Ver site ao vivo</a>
+      </div>
+    </div>
+
+  <!-- ==================== TELA 2: LOGIN ==================== -->
+  <?php elseif (!$isAuthenticated): ?>
+    <div class="container container-auth">
+      <div class="brand-header">
+        <img src="/brand/logo-v2.png" alt="Retífica Três Estrelas" class="brand-logo">
+        <h1 class="brand-title">Acesso ao Painel</h1>
+        <p class="brand-subtitle">Gerenciador de Tags e Rastreamento</p>
+      </div>
+
+      <?php if ($error !== ''): ?>
+        <div class="alert alert-error">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div><?= escape($error) ?></div>
+        </div>
+      <?php endif; ?>
+
+      <div class="card">
         <form method="post">
           <input type="hidden" name="csrf" value="<?= $csrf ?>">
           <input type="hidden" name="action" value="login">
-          <div class="field" style="margin-top:22px">
-            <label for="login-password">Senha</label>
-            <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+
+          <div class="form-group" style="margin-bottom: 24px;">
+            <label for="login-password">Senha de acesso</label>
+            <div class="input-wrapper">
+              <input id="login-password" name="password" type="password" class="input-password" autocomplete="current-password" placeholder="Digite sua senha" autofocus required>
+              <button type="button" class="toggle-password" onclick="togglePass('login-password')" title="Mostrar/ocultar senha">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <span class="hint">Sua sessão permanecerá conectada neste navegador por 30 dias.</span>
           </div>
-          <div class="actions">
-            <small>Após cinco tentativas incorretas, o acesso é pausado por 10 minutos.</small>
-            <button class="button primary" type="submit">Entrar</button>
-          </div>
+
+          <button class="btn btn-primary" type="submit">Entrar no painel</button>
         </form>
-      </section>
-    <?php else: ?>
+      </div>
+
+      <div class="admin-footer">
+        Retífica Três Estrelas &bull; <a href="/" target="_blank">Ver site ao vivo</a>
+      </div>
+    </div>
+
+  <!-- ==================== TELA 3: PAINEL PRINCIPAL ==================== -->
+  <?php else: ?>
+    <div class="container">
+      <header class="panel-topbar">
+        <div class="panel-topbar-left">
+          <img src="/brand/logo-v2.png" alt="Logo" class="panel-topbar-logo">
+          <div>
+            <h1 class="panel-topbar-title">Painel de Rastreamento</h1>
+            <span class="hint">Retífica Três Estrelas</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <a href="/" target="_blank" class="btn btn-outline btn-sm">Ver site ↗</a>
+          <form method="post" style="margin:0;">
+            <input type="hidden" name="csrf" value="<?= $csrf ?>">
+            <input type="hidden" name="action" value="logout">
+            <button class="btn btn-outline btn-sm" type="submit">Sair</button>
+          </form>
+        </div>
+      </header>
+
+      <?php if ($error !== ''): ?>
+        <div class="alert alert-error">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div><?= escape($error) ?></div>
+        </div>
+      <?php endif; ?>
+
+      <?php if ($success !== ''): ?>
+        <div class="alert alert-success">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <div><?= escape($success) ?></div>
+        </div>
+      <?php endif; ?>
+
+      <!-- CARD 1: CONFIGURAÇÃO DE TAGS -->
       <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Tags de Anúncios e Analytics
+          </h2>
+          <p class="card-desc">Configure seus pixels e IDs de conversão. O site atualizará em tempo real.</p>
+        </div>
+
         <form method="post" id="tracking-form">
           <input type="hidden" name="csrf" value="<?= $csrf ?>">
-          <input type="hidden" name="action" value="save">
+          <input type="hidden" name="action" value="save_tracking">
 
-          <div class="field">
-            <label for="mode">Forma de instalação</label>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label for="mode">Modo de Instalação</label>
             <select id="mode" name="mode">
-              <option value="direct" <?= $config['mode'] === 'direct' ? 'selected' : '' ?>>Tags diretas no site</option>
-              <option value="gtm" <?= $config['mode'] === 'gtm' ? 'selected' : '' ?>>Google Tag Manager</option>
+              <option value="direct" <?= $config['mode'] === 'direct' ? 'selected' : '' ?>>Tags Diretas no Site (Meta Pixel, GA4, Google Ads)</option>
+              <option value="gtm" <?= $config['mode'] === 'gtm' ? 'selected' : '' ?>>Google Tag Manager (GTM)</option>
             </select>
           </div>
 
-          <p class="mode-help">
-            Use <strong>Google Tag Manager</strong> se sua agência gerencia todas as tags dentro do GTM.
-            Use <strong>Tags diretas</strong> para configurar Meta Pixel, GA4 e Google Ads neste painel.
-          </p>
-
-          <div data-gtm>
-            <div class="field">
+          <!-- MODO GTM -->
+          <div data-gtm style="margin-bottom: 20px;">
+            <div class="form-group">
               <label for="gtm_id">ID do Google Tag Manager</label>
               <input id="gtm_id" name="gtm_id" value="<?= escape((string) $config['gtmId']) ?>" placeholder="GTM-XXXXXXX" autocomplete="off">
-              <small>Os eventos de clique no WhatsApp são enviados ao dataLayer como <strong>whatsapp_click</strong>.</small>
+              <span class="hint">Os cliques no WhatsApp disparam o evento <strong>whatsapp_click</strong> no DataLayer com o parâmetro <code>origem_contato</code>.</span>
             </div>
           </div>
 
-          <div class="grid" data-direct>
-            <div class="field">
-              <label for="meta_pixel_id">Meta Pixel ID</label>
-              <input id="meta_pixel_id" name="meta_pixel_id" value="<?= escape((string) $config['metaPixelId']) ?>" placeholder="123456789012345" inputmode="numeric" autocomplete="off">
-              <small>Dispara PageView e o evento personalizado WhatsAppClick.</small>
+          <!-- MODO DIRETO -->
+          <div class="form-grid" data-direct style="margin-bottom: 24px;">
+            <div class="form-group">
+              <label for="meta_pixel_id">Meta Pixel ID (Facebook / Instagram)</label>
+              <input id="meta_pixel_id" name="meta_pixel_id" value="<?= escape((string) $config['metaPixelId']) ?>" placeholder="Ex: 123456789012345" inputmode="numeric" autocomplete="off">
+              <span class="hint">Dispara PageView e o evento <strong>WhatsAppClick</strong> nos botões.</span>
             </div>
-            <div class="field">
-              <label for="ga4_id">ID de medição do GA4</label>
-              <input id="ga4_id" name="ga4_id" value="<?= escape((string) $config['ga4MeasurementId']) ?>" placeholder="G-XXXXXXXXXX" autocomplete="off">
-              <small>Recebe o evento whatsapp_click com a origem do botão.</small>
+
+            <div class="form-group">
+              <label for="ga4_id">ID do Google Analytics 4 (GA4)</label>
+              <input id="ga4_id" name="ga4_id" value="<?= escape((string) $config['ga4MeasurementId']) ?>" placeholder="Ex: G-XXXXXXXXXX" autocomplete="off">
+              <span class="hint">Dispara o evento <strong>whatsapp_click</strong> automaticamente.</span>
             </div>
-            <div class="field">
+
+            <div class="form-group">
               <label for="google_ads_id">ID do Google Ads</label>
-              <input id="google_ads_id" name="google_ads_id" value="<?= escape((string) $config['googleAdsId']) ?>" placeholder="AW-123456789" autocomplete="off">
+              <input id="google_ads_id" name="google_ads_id" value="<?= escape((string) $config['googleAdsId']) ?>" placeholder="Ex: AW-123456789" autocomplete="off">
+              <span class="hint">ID da sua conta Google Ads.</span>
             </div>
-            <div class="field">
-              <label for="google_ads_label">Rótulo da conversão</label>
-              <input id="google_ads_label" name="google_ads_label" value="<?= escape((string) $config['googleAdsConversionLabel']) ?>" placeholder="AbCdEfGhIjKlMn" autocomplete="off">
-              <small>Encontre este valor na ação de conversão criada no Google Ads.</small>
+
+            <div class="form-group">
+              <label for="google_ads_label">Rótulo de Conversão do Google Ads</label>
+              <input id="google_ads_label" name="google_ads_label" value="<?= escape((string) $config['googleAdsConversionLabel']) ?>" placeholder="Ex: AbCdEfGhIjKlMn" autocomplete="off">
+              <span class="hint">Rótulo da ação de conversão criada no Google Ads.</span>
             </div>
           </div>
 
-          <h2 class="section-title">Alterar senha <small>(opcional)</small></h2>
-          <div class="grid">
-            <div class="field">
-              <label for="current_password">Senha atual</label>
-              <input id="current_password" name="current_password" type="password" autocomplete="current-password">
-            </div>
-            <div class="field">
-              <label for="new_password">Nova senha</label>
-              <input id="new_password" name="new_password" type="password" minlength="12" autocomplete="new-password">
-            </div>
-            <div class="field">
-              <label for="new_password_confirmation">Confirmar nova senha</label>
-              <input id="new_password_confirmation" name="new_password_confirmation" type="password" minlength="12" autocomplete="new-password">
-            </div>
-          </div>
-
-          <div class="actions">
-            <div class="status">
-              <span class="dot" aria-hidden="true"></span>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid var(--card-border);">
+            <div class="status-badge">
+              <span class="status-dot"></span>
               <?php if (!empty($config['updatedAt'])): ?>
-                Configuração salva no servidor
+                Ativo no site (atualizado em <?= date('d/m/Y H:i', strtotime($config['updatedAt'])) ?>)
               <?php else: ?>
-                Rastreamento ainda não configurado
+                Pronto para configuração
               <?php endif; ?>
             </div>
-            <button class="button primary" type="submit">Salvar configurações</button>
+            <button class="btn btn-primary" type="submit" style="width: auto; min-width: 220px;">Salvar configurações</button>
           </div>
         </form>
       </section>
-    <?php endif; ?>
-  </main>
+
+      <!-- CARD 2: ALTERAR SENHA (ISOLADO) -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Alterar Senha do Painel
+          </h2>
+          <p class="card-desc">Altere sua senha de acesso a qualquer momento. Use no mínimo 8 caracteres.</p>
+        </div>
+
+        <form method="post" id="password-form">
+          <input type="hidden" name="csrf" value="<?= $csrf ?>">
+          <input type="hidden" name="action" value="change_password">
+
+          <div class="form-grid" style="margin-bottom: 20px;">
+            <div class="form-group full">
+              <label for="current_password">Senha atual</label>
+              <div class="input-wrapper">
+                <input id="current_password" name="current_password" type="password" class="input-password" autocomplete="current-password" placeholder="Digite sua senha atual" required>
+                <button type="button" class="toggle-password" onclick="togglePass('current_password')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="new_password">Nova senha</label>
+              <div class="input-wrapper">
+                <input id="new_password" name="new_password" type="password" class="input-password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required>
+                <button type="button" class="toggle-password" onclick="togglePass('new_password')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="new_password_confirmation">Confirmar nova senha</label>
+              <div class="input-wrapper">
+                <input id="new_password_confirmation" name="new_password_confirmation" type="password" class="input-password" minlength="8" autocomplete="new-password" placeholder="Repita a nova senha" required>
+                <button type="button" class="toggle-password" onclick="togglePass('new_password_confirmation')">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="btn btn-outline" type="submit">Atualizar senha</button>
+          </div>
+        </form>
+      </section>
+
+      <div class="admin-footer">
+        Retífica Três Estrelas &bull; <a href="/" target="_blank">retificatresestrelas.com.br</a>
+      </div>
+    </div>
+  <?php endif; ?>
+
   <script>
+    function togglePass(id) {
+      const input = document.getElementById(id);
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
     (() => {
       const mode = document.getElementById('mode');
       if (!mode) return;
       const refresh = () => {
-        document.querySelectorAll('[data-gtm]').forEach((node) => {
-          node.classList.toggle('hidden-mode', mode.value !== 'gtm');
+        document.querySelectorAll('[data-gtm]').forEach(el => {
+          el.classList.toggle('hidden-mode', mode.value !== 'gtm');
         });
-        document.querySelectorAll('[data-direct]').forEach((node) => {
-          node.classList.toggle('hidden-mode', mode.value !== 'direct');
+        document.querySelectorAll('[data-direct]').forEach(el => {
+          el.classList.toggle('hidden-mode', mode.value !== 'direct');
         });
       };
       mode.addEventListener('change', refresh);
